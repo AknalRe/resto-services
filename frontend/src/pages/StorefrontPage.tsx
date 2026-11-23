@@ -231,7 +231,7 @@ export function StorefrontPage({ forcedSlug }: StorefrontPageProps) {
       </header>
 
       <main>
-        {/* HERO — Controlled strictly by admin theme_preset */}
+        {/* HERO: controlled strictly by admin theme_preset */}
         {isHeritage && (
           <section id="beranda" className="relative flex min-h-[78vh] items-center justify-center overflow-hidden bg-stone-950 text-white">
             {heroSrc && (
