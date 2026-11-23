@@ -1,13 +1,20 @@
 import { useEffect, useState } from "react";
-import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
+import { BrowserRouter, Navigate, Route, Routes, useParams } from "react-router-dom";
 import { api } from "./lib/api";
 import { getAppBasePath } from "./lib/basePath";
-import type { AuthUser, Tenant } from "./types";
+import type { AuthUser, Tenant, ThemePreset } from "./types";
 import { PlatformHomePage } from "./pages/PlatformHomePage";
 import { StorefrontPage } from "./pages/StorefrontPage";
 import { LoginPage } from "./pages/LoginPage";
 import { TenantAdminPage } from "./pages/TenantAdminPage";
 import { SuperadminPage } from "./pages/SuperadminPage";
+
+function TemplatePreviewRoute({ defaultSlug }: { defaultSlug: string }) {
+  const { preset } = useParams<{ preset: string }>();
+  const validPreset: ThemePreset =
+    preset === "bistro" || preset === "cafe" || preset === "heritage" ? preset : "heritage";
+  return <StorefrontPage forcedSlug={defaultSlug} previewPreset={validPreset} />;
+}
 
 export function App() {
   const [user, setUser] = useState<AuthUser | null>(null);
@@ -43,6 +50,7 @@ export function App() {
   };
 
   const basePath = getAppBasePath();
+  const demoSlug = restaurants[0]?.slug || "kedai-heritage";
 
   if (!authChecked || hostMode === "loading") {
     return (
@@ -66,6 +74,7 @@ export function App() {
           }
         />
         <Route path="/r/:slug" element={<StorefrontPage />} />
+        <Route path="/preview/:preset" element={<TemplatePreviewRoute defaultSlug={demoSlug} />} />
         <Route
           path="/login"
           element={

@@ -8,46 +8,83 @@ import {
   Image as ImageIcon,
   Layers,
   Settings2,
-  UtensilsCrossed,
 } from "lucide-react";
-import { resolveAssetUrl } from "../lib/api";
 import { withBasePath } from "../lib/basePath";
-import type { AuthUser, Tenant } from "../types";
+import type { AuthUser, Tenant, ThemePreset } from "../types";
 
 interface PlatformHomePageProps {
   restaurants: Tenant[];
   user: AuthUser | null;
 }
 
+const TEMPLATE_SHOWCASE: ReadonlyArray<{
+  preset: ThemePreset;
+  name: string;
+  vibe: string;
+  summary: string;
+  image: string;
+  accent: string;
+  bestFor: string;
+}> = [
+  {
+    preset: "heritage",
+    name: "Restoran Keluarga & Banquet",
+    vibe: "Hangat, Elegan & Klasik",
+    summary:
+      "Banner suasana ruang makan penuh, daftar hidangan andalan bergambar besar, tata letak buku menu klasik, dan etalase ruang privat VIP.",
+    image: "/demo/hero-heritage.jpg",
+    accent: "#8B1E24",
+    bestFor: "Restoran keluarga, Chinese food, rumah makan legendaris, jamuan & sangjit",
+  },
+  {
+    preset: "bistro",
+    name: "Modern Bistro & Grill",
+    vibe: "Gelap, Kontras & Editorial",
+    summary:
+      "Nuansa charcoal dan tembaga yang menonjolkan warna makanan, papan menu modern berjarak lega, dan formulir reservasi meja cepat.",
+    image: "/demo/dish-ayam.jpg",
+    accent: "#C87D32",
+    bestFor: "Steakhouse, bistro modern, bar & grill, restoran fine casual",
+  },
+  {
+    preset: "cafe",
+    name: "Artisan Cafe & Kitchen",
+    vibe: "Krem Hangat & Santai",
+    summary:
+      "Tampilan cerah bernuansa kopi dan roti hangat, tab kategori cepat di layar ponsel, serta kartu menu bergambar yang ringan digulir.",
+    image: "/demo/dish-gurame.jpg",
+    accent: "#9A4A24",
+    bestFor: "Kedai kopi, bakery, brunch cafe, kedai makan harian",
+  },
+];
+
 const CAPABILITIES = [
   {
     icon: BookOpen,
     title: "Buku Menu Online Selalu Terkini",
-    desc: "Perbarui harga, foto hidangan, dan status stok habis langsung dari ponsel tanpa cetak ulang daftar menu.",
+    desc: "Ubah harga, foto hidangan, dan tanda stok habis langsung dari ponsel tanpa perlu cetak ulang menu.",
   },
   {
     icon: CalendarCheck2,
-    title: "Reservasi Meja & Acara ke WhatsApp",
-    desc: "Setiap permintaan reservasi tersimpan rapi di buku tamu cabang dan otomatis membuka pesan WhatsApp terformat.",
+    title: "Reservasi Langsung ke WhatsApp Cabang",
+    desc: "Tamu mengisi jadwal dan jumlah kursi, data tersimpan rapi di panel resto lalu langsung membuka WhatsApp admin cabang.",
   },
   {
     icon: Layers,
-    title: "Tiga Pilihan Tema dari Panel Admin",
-    desc: "Pemilik restoran menentukan sendiri tampilan website (Heritage, Bistro, atau Cafe) beserta warna utama dan logo.",
+    title: "Tema Dikontrol Penuh oleh Admin Resto",
+    desc: "Pilih gaya tampilan, warna utama, dan logo dari dashboard pengelola; pengunjung selalu melihat identitas resmi restoran.",
   },
   {
     icon: ImageIcon,
     title: "Ganti Foto & Promo Kapan Saja",
-    desc: "Unggah banner utama, foto makanan, promo musiman, dan ruang privat VIP tanpa perlu bantuan teknisi.",
+    desc: "Unggah foto banner, hidangan baru, promo musiman, dan ruang privat VIP dalam beberapa klik.",
   },
 ];
 
-export function PlatformHomePage({ restaurants, user }: PlatformHomePageProps) {
-  const demoResto = restaurants[0];
-
+export function PlatformHomePage({ user }: PlatformHomePageProps) {
   return (
     <div className="flex min-h-screen flex-col" style={{ backgroundColor: "var(--bg)", color: "var(--ink)" }}>
-      {/* Clean sticky platform header */}
+      {/* Clean sticky header */}
       <header className="sticky top-0 z-20 border-b backdrop-blur-md" style={{ backgroundColor: "rgba(255,255,255,0.92)", borderColor: "var(--border)" }}>
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-3 sm:px-6">
           <div className="flex items-center gap-2.5">
@@ -63,15 +100,13 @@ export function PlatformHomePage({ restaurants, user }: PlatformHomePageProps) {
           </div>
 
           <nav aria-label="Navigasi utama" className="flex items-center gap-2">
-            {demoResto && (
-              <Link
-                to={`/r/${demoResto.slug}`}
-                className="hidden h-9 items-center gap-1.5 rounded-lg border px-3 text-xs font-semibold no-underline transition-colors hover:bg-stone-100 sm:inline-flex"
-                style={{ borderColor: "var(--border-strong)", color: "var(--ink)" }}
-              >
-                Lihat Demo Website
-              </Link>
-            )}
+            <a
+              href="#contoh-tema"
+              className="hidden h-9 items-center rounded-lg border px-3 text-xs font-semibold no-underline transition-colors hover:bg-stone-100 sm:inline-flex"
+              style={{ borderColor: "var(--border-strong)", color: "var(--ink)" }}
+            >
+              Lihat Contoh Tema
+            </a>
             {user?.role === "superadmin" && (
               <Link
                 to="/superadmin/restaurants"
@@ -95,180 +130,154 @@ export function PlatformHomePage({ restaurants, user }: PlatformHomePageProps) {
       </header>
 
       <main className="flex-1">
-        {/* Asymmetric Hero with real culinary & dining hall preview */}
-        <section className="border-b" style={{ borderColor: "var(--border)", backgroundColor: "var(--surface)" }}>
-          <div className="mx-auto grid max-w-6xl grid-cols-1 gap-10 px-4 py-12 sm:px-6 lg:grid-cols-12 lg:items-center lg:py-16">
-            <div className="lg:col-span-6">
-              <p className="font-mono text-xs font-semibold uppercase tracking-widest" style={{ color: "#8B1E24" }}>
-                Website Resmi Restoran &amp; Kafe
+        {/* Warm culinary Hero */}
+        <section className="relative overflow-hidden bg-stone-950 text-white">
+          <img
+            src={withBasePath("/demo/hero-heritage.jpg")}
+            alt="Suasana ruang makan restoran"
+            className="absolute inset-0 h-full w-full object-cover opacity-35"
+          />
+          <div className="absolute inset-0 bg-gradient-to-r from-stone-950/95 via-stone-950/80 to-stone-950/60" />
+
+          <div className="relative z-10 mx-auto grid max-w-6xl grid-cols-1 gap-10 px-4 py-16 sm:px-6 lg:grid-cols-12 lg:items-center lg:py-20">
+            <div className="lg:col-span-7">
+              <p className="font-mono text-xs font-semibold uppercase tracking-[0.2em] text-amber-300">
+                Website Kuliner, Buku Menu &amp; Reservasi Meja
               </p>
-              <h1 className="font-display mt-2.5 text-4xl font-bold leading-tight tracking-tight sm:text-5xl" style={{ color: "var(--ink)" }}>
-                Satu Tempat untuk Buku Menu, Promo, dan Reservasi Meja Restoran Anda
+              <h1 className="font-display mt-3 text-4xl font-bold leading-tight text-white sm:text-6xl">
+                Tampilkan Menu dan Suasana Restoran Anda Lebih Menggugah Selera
               </h1>
-              <p className="mt-4 text-sm leading-relaxed sm:text-[15px]" style={{ color: "var(--ink-body)" }}>
-                Dirancang agar tamu yang membuka tautan dari Instagram atau Google Maps langsung melihat foto hidangan,
-                jam buka cabang, ruang acara, dan bisa memesan meja ke WhatsApp dalam hitungan detik.
+              <p className="mt-4 max-w-2xl text-sm leading-relaxed text-stone-200 sm:text-base">
+                Khusus untuk pemilik restoran, kafe, dan kedai makan. Tamu dari Instagram atau Google Maps langsung melihat
+                foto hidangan, harga terbaru, promo aktif, ruang privat, dan memesan meja lewat WhatsApp.
               </p>
 
-              <div className="mt-7 flex flex-wrap items-center gap-3">
-                {demoResto && (
-                  <Link
-                    to={`/r/${demoResto.slug}`}
-                    className="inline-flex h-11 items-center gap-2 rounded-lg px-5 text-sm font-semibold text-white no-underline transition-opacity hover:opacity-90"
-                    style={{ backgroundColor: "#8B1E24" }}
-                  >
-                    Buka Contoh Website Resto
-                    <ArrowRight size={15} strokeWidth={2} aria-hidden="true" />
-                  </Link>
-                )}
+              <div className="mt-8 flex flex-wrap items-center gap-3">
+                <a
+                  href="#contoh-tema"
+                  className="inline-flex h-12 items-center gap-2 rounded-lg px-6 text-sm font-semibold text-white no-underline transition-opacity hover:opacity-90"
+                  style={{ backgroundColor: "#8B1E24" }}
+                >
+                  Coba Contoh Tema F&amp;B
+                  <ArrowRight size={15} strokeWidth={2} aria-hidden="true" />
+                </a>
                 <Link
                   to={user ? (user.role === "superadmin" ? "/superadmin/restaurants" : "/admin") : "/login"}
-                  className="inline-flex h-11 items-center gap-2 rounded-lg border px-5 text-sm font-semibold no-underline transition-colors hover:bg-stone-100"
-                  style={{ borderColor: "var(--border-strong)", color: "var(--ink)" }}
+                  className="inline-flex h-12 items-center gap-2 rounded-lg border border-white/35 bg-white/10 px-6 text-sm font-semibold text-white no-underline backdrop-blur-sm transition-colors hover:bg-white/20"
                 >
                   Masuk Panel Pengelola
                 </Link>
               </div>
             </div>
 
-            <div className="lg:col-span-6">
-              <div className="grid grid-cols-12 gap-3">
-                <div className="col-span-8 overflow-hidden rounded-xl border" style={{ borderColor: "var(--border)" }}>
-                  <img
-                    src={withBasePath("/demo/hero-heritage.jpg")}
-                    alt="Suasana ruang makan restoran klasik"
-                    className="h-64 w-full object-cover sm:h-72"
-                  />
-                </div>
-                <div className="col-span-4 flex flex-col gap-3">
-                  <div className="flex-1 overflow-hidden rounded-xl border" style={{ borderColor: "var(--border)" }}>
-                    <img
-                      src={withBasePath("/demo/dish-ayam.jpg")}
-                      alt="Hidangan ayam goreng mentega"
-                      className="h-full w-full object-cover"
-                    />
-                  </div>
-                  <div className="flex-1 overflow-hidden rounded-xl border" style={{ borderColor: "var(--border)" }}>
-                    <img
-                      src={withBasePath("/demo/room-vip.jpg")}
-                      alt="Ruang makan privat VIP"
-                      className="h-full w-full object-cover"
-                    />
-                  </div>
-                </div>
-              </div>
+            <div className="hidden lg:col-span-5 lg:grid lg:grid-cols-2 lg:gap-3">
+              <img
+                src={withBasePath("/demo/dish-ayam.jpg")}
+                alt="Hidangan andalan ayam goreng mentega"
+                className="h-52 w-full rounded-xl border border-white/15 object-cover"
+              />
+              <img
+                src={withBasePath("/demo/dish-gurame.jpg")}
+                alt="Hidangan gurame asam manis"
+                className="mt-6 h-52 w-full rounded-xl border border-white/15 object-cover"
+              />
             </div>
           </div>
         </section>
 
-        {/* Concrete restaurant owner benefits (flat clean grid, zero nested cards) */}
-        <section className="mx-auto max-w-6xl px-4 py-12 sm:px-6">
+        {/* Live Template Showcase: 3 F&B styles directly tryable */}
+        <section id="contoh-tema" className="mx-auto max-w-6xl px-4 py-14 sm:px-6 sm:py-16">
           <div className="max-w-2xl">
-            <p className="font-mono text-xs font-semibold uppercase tracking-widest" style={{ color: "#0B2A57" }}>
-              Dirancang untuk Operasional Harian
+            <p className="font-mono text-xs font-semibold uppercase tracking-widest" style={{ color: "#8B1E24" }}>
+              Contoh Langsung Berdasarkan Gaya F&amp;B
             </p>
-            <h2 className="font-display mt-1.5 text-3xl font-bold" style={{ color: "var(--ink)" }}>
-              Kendali Penuh dari Pemilik dan Tim Restoran
+            <h2 className="font-display mt-1.5 text-3xl font-bold sm:text-4xl" style={{ color: "var(--ink)" }}>
+              Pilih Gaya Tampilan yang Paling Cocok untuk Konsep Dapur Anda
             </h2>
+            <p className="mt-2 text-sm leading-relaxed" style={{ color: "var(--ink-body)" }}>
+              Klik salah satu tema di bawah untuk mencoba tampilan website secara penuh. Setelah aktif, tema ditentukan
+              sepenuhnya dari Panel Admin restoran.
+            </p>
           </div>
 
-          <div className="mt-8 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
-            {CAPABILITIES.map((cap) => {
-              const Icon = cap.icon;
-              return (
-                <div key={cap.title} className="border-t pt-4" style={{ borderColor: "var(--border-strong)" }}>
-                  <Icon size={18} strokeWidth={1.75} style={{ color: "#8B1E24" }} aria-hidden="true" />
-                  <h3 className="mt-3 text-sm font-bold" style={{ color: "var(--ink)" }}>
-                    {cap.title}
-                  </h3>
-                  <p className="mt-1.5 text-xs leading-relaxed" style={{ color: "var(--ink-body)" }}>
-                    {cap.desc}
-                  </p>
+          <div className="mt-8 grid grid-cols-1 gap-6 lg:grid-cols-3">
+            {TEMPLATE_SHOWCASE.map((tpl) => (
+              <article
+                key={tpl.preset}
+                className="flex flex-col justify-between overflow-hidden rounded-2xl border transition-colors hover:border-stone-400"
+                style={{ backgroundColor: "var(--surface)", borderColor: "var(--border)" }}
+              >
+                <div>
+                  <div className="relative h-52 w-full overflow-hidden bg-stone-900">
+                    <img
+                      src={withBasePath(tpl.image)}
+                      alt={tpl.name}
+                      className="h-full w-full object-cover transition-transform duration-300 hover:scale-105"
+                    />
+                    <span
+                      className="absolute left-3.5 top-3.5 rounded-md px-2.5 py-1 text-[11px] font-semibold text-white"
+                      style={{ backgroundColor: tpl.accent }}
+                    >
+                      {tpl.vibe}
+                    </span>
+                  </div>
+
+                  <div className="p-5">
+                    <h3 className="font-display text-2xl font-bold" style={{ color: "var(--ink)" }}>
+                      {tpl.name}
+                    </h3>
+                    <p className="mt-2 text-xs leading-relaxed" style={{ color: "var(--ink-body)" }}>
+                      {tpl.summary}
+                    </p>
+                    <p className="mt-3 border-t pt-3 text-[11px]" style={{ borderColor: "var(--border)", color: "var(--ink-muted)" }}>
+                      <strong style={{ color: "var(--ink-body)" }}>Cocok untuk:</strong> {tpl.bestFor}
+                    </p>
+                  </div>
                 </div>
-              );
-            })}
+
+                <div className="px-5 pb-5">
+                  <Link
+                    to={`/preview/${tpl.preset}`}
+                    className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-lg text-xs font-semibold text-white no-underline transition-opacity hover:opacity-90"
+                    style={{ backgroundColor: tpl.accent }}
+                  >
+                    Lihat Contoh Live
+                    <ArrowRight size={13} strokeWidth={2} aria-hidden="true" />
+                  </Link>
+                </div>
+              </article>
+            ))}
           </div>
         </section>
 
-        {/* Active Restaurants Directory */}
-        <section className="border-t py-12" style={{ borderColor: "var(--border)", backgroundColor: "var(--surface)" }}>
+        {/* Concrete restaurant owner capabilities */}
+        <section className="border-t py-14" style={{ borderColor: "var(--border)", backgroundColor: "var(--surface)" }}>
           <div className="mx-auto max-w-6xl px-4 sm:px-6">
-            <div className="flex flex-wrap items-end justify-between gap-2">
-              <div>
-                <p className="font-mono text-xs font-semibold uppercase tracking-widest" style={{ color: "#8B1E24" }}>
-                  Direktori Aktif
-                </p>
-                <h2 className="font-display mt-1 text-3xl font-bold" style={{ color: "var(--ink)" }}>
-                  Restoran di Reneo Resto ({restaurants.length})
-                </h2>
-              </div>
+            <div className="max-w-2xl">
+              <p className="font-mono text-xs font-semibold uppercase tracking-widest" style={{ color: "#0B2A57" }}>
+                Praktis untuk Operasional Harian
+              </p>
+              <h2 className="font-display mt-1.5 text-3xl font-bold" style={{ color: "var(--ink)" }}>
+                Semua Kebutuhan Website Restoran dalam Satu Panel
+              </h2>
             </div>
 
-            {restaurants.length === 0 ? (
-              <div className="mt-6 rounded-xl border border-dashed p-10 text-center text-sm" style={{ borderColor: "var(--border)", color: "var(--ink-muted)" }}>
-                Belum ada restoran yang terdaftar. Masuk ke Portal Superadmin untuk menambahkan restoran pertama.
-              </div>
-            ) : (
-              <div className="mt-6 grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3">
-                {restaurants.map((resto) => {
-                  const thumb = resolveAssetUrl(resto.hero_image_url) || withBasePath("/demo/hero-heritage.jpg");
-                  return (
-                    <article
-                      key={resto.id}
-                      className="flex flex-col justify-between overflow-hidden rounded-xl border transition-colors hover:border-stone-400"
-                      style={{ backgroundColor: "var(--bg)", borderColor: "var(--border)" }}
-                    >
-                      <div>
-                        <div className="relative h-40 w-full overflow-hidden bg-stone-900">
-                          <img src={thumb} alt={resto.name} className="h-full w-full object-cover" loading="lazy" />
-                          <span
-                            className="absolute right-3 top-3 rounded-md px-2 py-0.5 font-mono text-[10px] font-semibold uppercase text-white"
-                            style={{ backgroundColor: "rgba(15,23,42,0.78)" }}
-                          >
-                            Tema {resto.theme_preset}
-                          </span>
-                        </div>
-                        <div className="p-5">
-                          <div className="flex items-center gap-2.5">
-                            <span
-                              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-white"
-                              style={{ backgroundColor: resto.primary_color || "#8B1E24" }}
-                            >
-                              <UtensilsCrossed size={14} strokeWidth={1.75} aria-hidden="true" />
-                            </span>
-                            <div className="min-w-0">
-                              <h3 className="truncate text-base font-bold" style={{ color: "var(--ink)" }}>
-                                {resto.name}
-                              </h3>
-                              <p className="truncate font-mono text-[11px]" style={{ color: "var(--ink-muted)" }}>
-                                {resto.custom_domain || `${resto.slug}.resto.reneo.my.id`}
-                              </p>
-                            </div>
-                          </div>
-                          <p className="mt-3 line-clamp-2 text-xs leading-relaxed" style={{ color: "var(--ink-body)" }}>
-                            {resto.tagline || "Website restoran, buku menu online, dan reservasi meja."}
-                          </p>
-                        </div>
-                      </div>
-
-                      <div className="flex items-center justify-between border-t px-5 py-3.5 text-xs" style={{ borderColor: "var(--border)", backgroundColor: "var(--surface)" }}>
-                        <span className="font-mono text-[11px]" style={{ color: "var(--ink-muted)" }}>
-                          {resto.branch_count ?? 0} cabang · {resto.menu_count ?? 0} menu
-                        </span>
-                        <Link
-                          to={`/r/${resto.slug}`}
-                          className="inline-flex items-center gap-1 font-semibold no-underline hover:underline"
-                          style={{ color: resto.primary_color || "#8B1E24" }}
-                        >
-                          Buka Website
-                          <ArrowRight size={13} strokeWidth={2} aria-hidden="true" />
-                        </Link>
-                      </div>
-                    </article>
-                  );
-                })}
-              </div>
-            )}
+            <div className="mt-8 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+              {CAPABILITIES.map((cap) => {
+                const Icon = cap.icon;
+                return (
+                  <div key={cap.title} className="border-t pt-4" style={{ borderColor: "var(--border-strong)" }}>
+                    <Icon size={18} strokeWidth={1.75} style={{ color: "#8B1E24" }} aria-hidden="true" />
+                    <h3 className="mt-3 text-sm font-bold" style={{ color: "var(--ink)" }}>
+                      {cap.title}
+                    </h3>
+                    <p className="mt-1.5 text-xs leading-relaxed" style={{ color: "var(--ink-body)" }}>
+                      {cap.desc}
+                    </p>
+                  </div>
+                );
+              })}
+            </div>
           </div>
         </section>
       </main>

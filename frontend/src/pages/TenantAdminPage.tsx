@@ -11,9 +11,9 @@ interface TenantAdminPageProps {
 }
 
 const THEME_CARDS: ReadonlyArray<{ key: ThemePreset; title: string; desc: string }> = [
-  { key: "heritage", title: "Heritage (Klasik)", desc: "Banner penuh gelap elegan ala restoran keluarga klasik, tipografi serif hangat." },
-  { key: "bistro", title: "Bistro (Modern)", desc: "Tata letak split kontras tinggi dengan header gelap dan kartu menu tajam." },
-  { key: "cafe", title: "Cafe (Artisan)", desc: "Nuansa krem hangat dengan sudut membulat lembut dan navigasi pil." },
+  { key: "heritage", title: "Restoran Keluarga & Banquet", desc: "Banner penuh hangat klasik, buku menu dengan garis titik harga, dan etalase ruang VIP." },
+  { key: "bistro", title: "Modern Bistro & Grill", desc: "Latar charcoal gelap dengan aksen tembaga yang menonjolkan foto hidangan." },
+  { key: "cafe", title: "Artisan Cafe & Kitchen", desc: "Nuansa krem hangat dengan kartu membulat lembut dan navigasi pil santai." },
 ];
 
 export function TenantAdminPage({ user, onLogout }: TenantAdminPageProps) {
