@@ -1,19 +1,26 @@
 import { useCallback, useEffect, useState, type FormEvent } from "react";
 import { Link, useParams } from "react-router-dom";
-import { ArrowLeft, ExternalLink, LogOut, Plus, Trash2 } from "lucide-react";
-import { api, formatRupiah } from "../lib/api";
+import { ArrowLeft, Check, ExternalLink, LogOut, Plus, Trash2 } from "lucide-react";
+import { api, formatRupiah, resolveAssetUrl } from "../lib/api";
 import type { AuthUser, TenantOverviewPayload, ThemePreset } from "../types";
+import { ImageUploadField } from "../components/ImageUploadField";
 
 interface TenantAdminPageProps {
   user: AuthUser;
   onLogout: () => void;
 }
 
+const THEME_CARDS: ReadonlyArray<{ key: ThemePreset; title: string; desc: string }> = [
+  { key: "heritage", title: "Heritage (Klasik)", desc: "Banner penuh gelap elegan ala restoran keluarga klasik, tipografi serif hangat." },
+  { key: "bistro", title: "Bistro (Modern)", desc: "Tata letak split kontras tinggi dengan header gelap dan kartu menu tajam." },
+  { key: "cafe", title: "Cafe (Artisan)", desc: "Nuansa krem hangat dengan sudut membulat lembut dan navigasi pil." },
+];
+
 export function TenantAdminPage({ user, onLogout }: TenantAdminPageProps) {
   const params = useParams<{ tenantId: string }>();
   const tenantId = params.tenantId ? Number(params.tenantId) : user.tenantId || 1;
 
-  const [tab, setTab] = useState<"menu" | "reservations" | "promos" | "branches" | "profile">("menu");
+  const [tab, setTab] = useState<"menu" | "reservations" | "promos" | "events" | "branches" | "profile">("menu");
   const [data, setData] = useState<TenantOverviewPayload | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -26,9 +33,17 @@ export function TenantAdminPage({ user, onLogout }: TenantAdminPageProps) {
   const [itemCat, setItemCat] = useState("");
   const [itemDesc, setItemDesc] = useState("");
   const [itemBadge, setItemBadge] = useState("");
+  const [itemImage, setItemImage] = useState("");
 
   const [promoTitle, setPromoTitle] = useState("");
   const [promoDesc, setPromoDesc] = useState("");
+  const [promoBanner, setPromoBanner] = useState("");
+
+  const [evtTitle, setEvtTitle] = useState("");
+  const [evtCapacity, setEvtCapacity] = useState("");
+  const [evtPrice, setEvtPrice] = useState("");
+  const [evtDesc, setEvtDesc] = useState("");
+  const [evtImage, setEvtImage] = useState("");
 
   const [branchName, setBranchName] = useState("");
   const [branchAddress, setBranchAddress] = useState("");
@@ -40,6 +55,8 @@ export function TenantAdminPage({ user, onLogout }: TenantAdminPageProps) {
   const [profStory, setProfStory] = useState("");
   const [profPreset, setProfPreset] = useState<ThemePreset>("heritage");
   const [profColor, setProfColor] = useState("#8B1E24");
+  const [profLogo, setProfLogo] = useState("");
+  const [profHero, setProfHero] = useState("");
 
   const loadOverview = useCallback(async () => {
     setLoading(true);
@@ -52,6 +69,8 @@ export function TenantAdminPage({ user, onLogout }: TenantAdminPageProps) {
       setProfStory(res.tenant.story);
       setProfPreset(res.tenant.theme_preset);
       setProfColor(res.tenant.primary_color);
+      setProfLogo(res.tenant.logo_url || "");
+      setProfHero(res.tenant.hero_image_url || "");
       if (!itemCat && res.categories[0]) setItemCat(String(res.categories[0].id));
     } catch (err) {
       setError(err instanceof Error ? err.message : "Gagal memuat data restoran.");
@@ -87,11 +106,13 @@ export function TenantAdminPage({ user, onLogout }: TenantAdminPageProps) {
       category_id: itemCat ? Number(itemCat) : null,
       description: itemDesc.trim(),
       badge: itemBadge.trim(),
+      image_url: itemImage.trim(),
       is_available: true,
     });
     setItemName("");
     setItemDesc("");
     setItemBadge("");
+    setItemImage("");
     flash("Menu baru disimpan.");
     await loadOverview();
   };
@@ -104,10 +125,34 @@ export function TenantAdminPage({ user, onLogout }: TenantAdminPageProps) {
   const handleAddPromo = async (e: FormEvent) => {
     e.preventDefault();
     if (!promoTitle.trim()) return;
-    await api.createPromo(tenantId, { title: promoTitle.trim(), description: promoDesc.trim() });
+    await api.createPromo(tenantId, {
+      title: promoTitle.trim(),
+      description: promoDesc.trim(),
+      banner_url: promoBanner.trim(),
+    });
     setPromoTitle("");
     setPromoDesc("");
+    setPromoBanner("");
     flash("Promo aktif ditambahkan.");
+    await loadOverview();
+  };
+
+  const handleAddEvent = async (e: FormEvent) => {
+    e.preventDefault();
+    if (!evtTitle.trim()) return;
+    await api.createEventPackage(tenantId, {
+      title: evtTitle.trim(),
+      capacity: evtCapacity.trim(),
+      price_label: evtPrice.trim(),
+      description: evtDesc.trim(),
+      image_url: evtImage.trim(),
+    });
+    setEvtTitle("");
+    setEvtCapacity("");
+    setEvtPrice("");
+    setEvtDesc("");
+    setEvtImage("");
+    flash("Paket ruang acara ditambahkan.");
     await loadOverview();
   };
 
@@ -135,8 +180,10 @@ export function TenantAdminPage({ user, onLogout }: TenantAdminPageProps) {
       story: profStory.trim(),
       theme_preset: profPreset,
       primary_color: profColor,
+      logo_url: profLogo.trim(),
+      hero_image_url: profHero.trim(),
     });
-    flash("Profil & tema restoran diperbarui.");
+    flash("Profil, gambar, dan tema restoran diperbarui.");
     await loadOverview();
   };
 
@@ -191,8 +238,9 @@ export function TenantAdminPage({ user, onLogout }: TenantAdminPageProps) {
               { id: "menu", label: `Menu (${data?.menu_items.length ?? 0})` },
               { id: "reservations", label: `Reservasi (${data?.reservations.length ?? 0})` },
               { id: "promos", label: `Promo (${data?.promos.length ?? 0})` },
+              { id: "events", label: `Ruang Acara (${data?.event_packages.length ?? 0})` },
               { id: "branches", label: `Cabang (${data?.branches.length ?? 0})` },
-              { id: "profile", label: "Profil & Tema" },
+              { id: "profile", label: "Profil, Gambar & Tema" },
             ] as const
           ).map((t) => (
             <button
@@ -246,6 +294,7 @@ export function TenantAdminPage({ user, onLogout }: TenantAdminPageProps) {
                     </div>
                     <input type="text" value={itemBadge} onChange={(e) => setItemBadge(e.target.value)} placeholder="Label opsional (Terlaris / Baru)" className="resto-field h-9 w-full px-3 text-xs" />
                     <textarea rows={2} value={itemDesc} onChange={(e) => setItemDesc(e.target.value)} placeholder="Deskripsi singkat hidangan" className="resto-field w-full p-2.5 text-xs" />
+                    <ImageUploadField tenantId={tenantId} label="Foto Hidangan" value={itemImage} onChange={setItemImage} aspectClass="h-24" />
                     <button type="submit" className="inline-flex h-9 w-full items-center justify-center gap-1.5 rounded-lg text-xs font-semibold text-white" style={{ backgroundColor: "#0B2A57" }}>
                       <Plus size={14} strokeWidth={2} aria-hidden="true" />
                       Simpan Menu
@@ -272,37 +321,43 @@ export function TenantAdminPage({ user, onLogout }: TenantAdminPageProps) {
                 </div>
 
                 <div className="divide-y rounded-xl border lg:col-span-8" style={{ backgroundColor: "var(--surface)", borderColor: "var(--border)" }}>
-                  {data.menu_items.map((item) => (
-                    <div key={item.id} className="flex flex-wrap items-center justify-between gap-3 px-4 py-3">
-                      <div className="min-w-0 flex-1">
-                        <div className="text-sm font-semibold" style={{ color: "var(--ink)" }}>{item.name}</div>
-                        <div className="font-mono text-xs" style={{ color: "var(--ink-muted)" }}>{formatRupiah(item.price)}</div>
+                  {data.menu_items.map((item) => {
+                    const thumb = resolveAssetUrl(item.image_url);
+                    return (
+                      <div key={item.id} className="flex flex-wrap items-center justify-between gap-3 px-4 py-3">
+                        <div className="flex min-w-0 flex-1 items-center gap-3">
+                          {thumb && <img src={thumb} alt={item.name} className="h-11 w-14 shrink-0 rounded-md object-cover" />}
+                          <div className="min-w-0">
+                            <div className="truncate text-sm font-semibold" style={{ color: "var(--ink)" }}>{item.name}</div>
+                            <div className="font-mono text-xs" style={{ color: "var(--ink-muted)" }}>{formatRupiah(item.price)}</div>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <button
+                            type="button"
+                            onClick={() => void handleToggleAvailable(item.id, item.is_available)}
+                            className="h-7 rounded-md border px-2.5 text-xs font-semibold"
+                            style={{
+                              backgroundColor: item.is_available ? "var(--emerald-bg)" : "var(--danger-bg)",
+                              borderColor: item.is_available ? "var(--emerald)" : "var(--danger)",
+                              color: item.is_available ? "var(--emerald)" : "var(--danger)",
+                            }}
+                          >
+                            {item.is_available ? "Tersedia" : "Habis"}
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => void api.deleteMenuItem(tenantId, item.id).then(loadOverview)}
+                            aria-label={`Hapus ${item.name}`}
+                            className="inline-flex h-7 w-7 items-center justify-center rounded-md border"
+                            style={{ borderColor: "var(--border)", color: "var(--danger)" }}
+                          >
+                            <Trash2 size={12} strokeWidth={1.75} aria-hidden="true" />
+                          </button>
+                        </div>
                       </div>
-                      <div className="flex items-center gap-2">
-                        <button
-                          type="button"
-                          onClick={() => void handleToggleAvailable(item.id, item.is_available)}
-                          className="h-7 rounded-md border px-2.5 text-xs font-semibold"
-                          style={{
-                            backgroundColor: item.is_available ? "var(--emerald-bg)" : "var(--danger-bg)",
-                            borderColor: item.is_available ? "var(--emerald)" : "var(--danger)",
-                            color: item.is_available ? "var(--emerald)" : "var(--danger)",
-                          }}
-                        >
-                          {item.is_available ? "Tersedia" : "Habis"}
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => void api.deleteMenuItem(tenantId, item.id).then(loadOverview)}
-                          aria-label={`Hapus ${item.name}`}
-                          className="inline-flex h-7 w-7 items-center justify-center rounded-md border"
-                          style={{ borderColor: "var(--border)", color: "var(--danger)" }}
-                        >
-                          <Trash2 size={12} strokeWidth={1.75} aria-hidden="true" />
-                        </button>
-                      </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </div>
             )}
@@ -364,6 +419,7 @@ export function TenantAdminPage({ user, onLogout }: TenantAdminPageProps) {
                   <h2 className="text-sm font-bold">Tambah Promo</h2>
                   <input type="text" required value={promoTitle} onChange={(e) => setPromoTitle(e.target.value)} placeholder="Judul promo" className="resto-field h-9 w-full px-3 text-sm" />
                   <textarea rows={3} value={promoDesc} onChange={(e) => setPromoDesc(e.target.value)} placeholder="Keterangan dan syarat promo" className="resto-field w-full p-2.5 text-xs" />
+                  <ImageUploadField tenantId={tenantId} label="Banner Promo (opsional)" value={promoBanner} onChange={setPromoBanner} aspectClass="h-24" />
                   <button type="submit" className="h-9 rounded-lg px-4 text-xs font-semibold text-white" style={{ backgroundColor: "#0B2A57" }}>Simpan Promo</button>
                 </form>
                 <div className="divide-y rounded-xl border md:col-span-7" style={{ backgroundColor: "var(--surface)", borderColor: "var(--border)" }}>
@@ -378,6 +434,41 @@ export function TenantAdminPage({ user, onLogout }: TenantAdminPageProps) {
                       </button>
                     </div>
                   ))}
+                </div>
+              </div>
+            )}
+
+            {tab === "events" && (
+              <div className="grid grid-cols-1 gap-5 md:grid-cols-12">
+                <form onSubmit={(e) => void handleAddEvent(e)} className="space-y-3 rounded-xl border p-4 md:col-span-5" style={{ backgroundColor: "var(--surface)", borderColor: "var(--border)" }}>
+                  <h2 className="text-sm font-bold">Tambah Paket Ruang Acara</h2>
+                  <input type="text" required value={evtTitle} onChange={(e) => setEvtTitle(e.target.value)} placeholder="Nama paket / ruangan" className="resto-field h-9 w-full px-3 text-sm" />
+                  <div className="grid grid-cols-2 gap-2">
+                    <input type="text" value={evtCapacity} onChange={(e) => setEvtCapacity(e.target.value)} placeholder="Kapasitas (mis: 20 Tamu)" className="resto-field h-9 w-full px-3 text-xs" />
+                    <input type="text" value={evtPrice} onChange={(e) => setEvtPrice(e.target.value)} placeholder="Harga (mis: Mulai Rp 3jt)" className="resto-field h-9 w-full px-3 text-xs" />
+                  </div>
+                  <textarea rows={2} value={evtDesc} onChange={(e) => setEvtDesc(e.target.value)} placeholder="Fasilitas dan rincian paket" className="resto-field w-full p-2.5 text-xs" />
+                  <ImageUploadField tenantId={tenantId} label="Foto Ruangan / Acara" value={evtImage} onChange={setEvtImage} aspectClass="h-24" />
+                  <button type="submit" className="h-9 rounded-lg px-4 text-xs font-semibold text-white" style={{ backgroundColor: "#0B2A57" }}>Simpan Paket Acara</button>
+                </form>
+                <div className="divide-y rounded-xl border md:col-span-7" style={{ backgroundColor: "var(--surface)", borderColor: "var(--border)" }}>
+                  {data.event_packages.map((ev) => {
+                    const thumb = resolveAssetUrl(ev.image_url);
+                    return (
+                      <div key={ev.id} className="flex items-start justify-between gap-3 px-4 py-3">
+                        <div className="flex items-start gap-3">
+                          {thumb && <img src={thumb} alt={ev.title} className="h-12 w-16 shrink-0 rounded-md object-cover" />}
+                          <div>
+                            <div className="text-sm font-semibold">{ev.title}</div>
+                            <div className="text-xs" style={{ color: "var(--ink-muted)" }}>{ev.capacity} · {ev.price_label}</div>
+                          </div>
+                        </div>
+                        <button type="button" onClick={() => void api.deleteEventPackage(tenantId, ev.id).then(loadOverview)} style={{ color: "var(--danger)" }}>
+                          <Trash2 size={14} strokeWidth={1.75} aria-hidden="true" />
+                        </button>
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
             )}
@@ -410,40 +501,70 @@ export function TenantAdminPage({ user, onLogout }: TenantAdminPageProps) {
             )}
 
             {tab === "profile" && (
-              <form onSubmit={(e) => void handleSaveProfile(e)} className="max-w-xl space-y-3.5 rounded-xl border p-5" style={{ backgroundColor: "var(--surface)", borderColor: "var(--border)" }}>
-                <h2 className="text-sm font-bold">Profil &amp; Preset Tampilan Restoran</h2>
-                <div>
-                  <label className="mb-1 block text-xs font-semibold">Nama Restoran</label>
-                  <input type="text" required value={profName} onChange={(e) => setProfName(e.target.value)} className="resto-field h-9 w-full px-3 text-sm" />
-                </div>
-                <div>
-                  <label className="mb-1 block text-xs font-semibold">Tagline Utama</label>
-                  <input type="text" value={profTagline} onChange={(e) => setProfTagline(e.target.value)} className="resto-field h-9 w-full px-3 text-sm" />
-                </div>
-                <div>
-                  <label className="mb-1 block text-xs font-semibold">Cerita Singkat Restoran</label>
-                  <textarea rows={3} value={profStory} onChange={(e) => setProfStory(e.target.value)} className="resto-field w-full p-2.5 text-sm" />
-                </div>
-                <div className="grid grid-cols-2 gap-3">
+              <form onSubmit={(e) => void handleSaveProfile(e)} className="grid grid-cols-1 gap-6 lg:grid-cols-12">
+                <div className="space-y-4 rounded-xl border p-5 lg:col-span-7" style={{ backgroundColor: "var(--surface)", borderColor: "var(--border)" }}>
+                  <h2 className="text-sm font-bold">Identitas &amp; Pilihan Tema Tampilan</h2>
                   <div>
-                    <label className="mb-1 block text-xs font-semibold">Preset Tampilan</label>
-                    <select value={profPreset} onChange={(e) => setProfPreset(e.target.value as ThemePreset)} className="resto-field resto-select h-9 w-full pl-3 text-sm">
-                      <option value="heritage">Heritage (Klasik Hangat)</option>
-                      <option value="bistro">Bistro (Modern Kontras)</option>
-                      <option value="cafe">Cafe (Krem &amp; Espresso)</option>
-                    </select>
+                    <label className="mb-1 block text-xs font-semibold">Nama Restoran</label>
+                    <input type="text" required value={profName} onChange={(e) => setProfName(e.target.value)} className="resto-field h-9 w-full px-3 text-sm" />
                   </div>
                   <div>
-                    <label className="mb-1 block text-xs font-semibold">Warna Utama</label>
-                    <div className="flex items-center gap-2">
-                      <input type="color" value={profColor} onChange={(e) => setProfColor(e.target.value)} className="h-9 w-12 rounded border p-0.5" />
-                      <input type="text" value={profColor} onChange={(e) => setProfColor(e.target.value)} className="resto-field h-9 flex-1 px-2.5 font-mono text-xs" />
+                    <label className="mb-1 block text-xs font-semibold">Tagline Utama</label>
+                    <input type="text" value={profTagline} onChange={(e) => setProfTagline(e.target.value)} className="resto-field h-9 w-full px-3 text-sm" />
+                  </div>
+                  <div>
+                    <label className="mb-1 block text-xs font-semibold">Cerita Singkat Restoran</label>
+                    <textarea rows={3} value={profStory} onChange={(e) => setProfStory(e.target.value)} className="resto-field w-full p-2.5 text-sm" />
+                  </div>
+
+                  <div>
+                    <span className="mb-2 block text-xs font-semibold">Pilih Tema Tampilan Website</span>
+                    <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-3">
+                      {THEME_CARDS.map((card) => {
+                        const active = profPreset === card.key;
+                        return (
+                          <button
+                            key={card.key}
+                            type="button"
+                            onClick={() => setProfPreset(card.key)}
+                            aria-pressed={active}
+                            className="flex flex-col items-start gap-1 rounded-xl border p-3 text-left transition-colors"
+                            style={{
+                              borderColor: active ? "#0B2A57" : "var(--border)",
+                              backgroundColor: active ? "var(--surface-muted)" : "var(--surface)",
+                            }}
+                          >
+                            <div className="flex w-full items-center justify-between text-xs font-bold" style={{ color: "var(--ink)" }}>
+                              <span>{card.title}</span>
+                              {active && <Check size={13} strokeWidth={2.5} aria-hidden="true" />}
+                            </div>
+                            <p className="text-[11px] leading-snug" style={{ color: "var(--ink-muted)" }}>
+                              {card.desc}
+                            </p>
+                          </button>
+                        );
+                      })}
                     </div>
                   </div>
+
+                  <div>
+                    <label className="mb-1 block text-xs font-semibold">Warna Aksen Utama</label>
+                    <div className="flex items-center gap-2">
+                      <input type="color" value={profColor} onChange={(e) => setProfColor(e.target.value)} className="h-9 w-12 rounded border p-0.5" />
+                      <input type="text" value={profColor} onChange={(e) => setProfColor(e.target.value)} className="resto-field h-9 w-36 px-2.5 font-mono text-xs" />
+                    </div>
+                  </div>
+
+                  <button type="submit" className="h-10 rounded-lg px-5 text-xs font-semibold text-white" style={{ backgroundColor: "#0B2A57" }}>
+                    Simpan Profil, Gambar &amp; Tema
+                  </button>
                 </div>
-                <button type="submit" className="h-9 rounded-lg px-4 text-xs font-semibold text-white" style={{ backgroundColor: "#0B2A57" }}>
-                  Simpan Perubahan
-                </button>
+
+                <div className="space-y-4 rounded-xl border p-5 lg:col-span-5" style={{ backgroundColor: "var(--surface)", borderColor: "var(--border)" }}>
+                  <h2 className="text-sm font-bold">Gambar &amp; Media Utama</h2>
+                  <ImageUploadField tenantId={tenantId} label="Logo Restoran" value={profLogo} onChange={setProfLogo} aspectClass="h-24" />
+                  <ImageUploadField tenantId={tenantId} label="Foto Banner Utama (Hero)" value={profHero} onChange={setProfHero} aspectClass="h-40" />
+                </div>
               </form>
             )}
           </div>

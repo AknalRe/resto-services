@@ -240,19 +240,20 @@ export function registerTenantAdminRoutes(app: FastifyInstance, pool: Pool): voi
   // Promos
   app.post<{
     Params: { tenantId: string };
-    Body: { title?: string; description?: string; start_date?: string | null; end_date?: string | null };
+    Body: { title?: string; description?: string; banner_url?: string; start_date?: string | null; end_date?: string | null };
   }>("/api/admin/tenants/:tenantId/promos", async (request, reply) => {
     const tenantId = Number(request.params.tenantId);
     if (!(await requireTenantAccess(request, reply, tenantId))) return;
     const title = (request.body?.title || "").trim();
     if (!title) return reply.code(400).send({ error: "Judul promo wajib diisi." });
     const res = await pool.query(
-      `INSERT INTO promos (tenant_id, title, description, start_date, end_date, is_active)
-       VALUES ($1, $2, $3, $4, $5, TRUE) RETURNING *`,
+      `INSERT INTO promos (tenant_id, title, description, banner_url, start_date, end_date, is_active)
+       VALUES ($1, $2, $3, $4, $5, $6, TRUE) RETURNING *`,
       [
         tenantId,
         title,
         (request.body?.description || "").trim(),
+        (request.body?.banner_url || "").trim(),
         request.body?.start_date || null,
         request.body?.end_date || null,
       ]
@@ -266,6 +267,40 @@ export function registerTenantAdminRoutes(app: FastifyInstance, pool: Pool): voi
       const tenantId = Number(request.params.tenantId);
       if (!(await requireTenantAccess(request, reply, tenantId))) return;
       await pool.query("DELETE FROM promos WHERE id = $1 AND tenant_id = $2", [Number(request.params.id), tenantId]);
+      return { ok: true };
+    }
+  );
+
+  // Event Packages
+  app.post<{
+    Params: { tenantId: string };
+    Body: { title?: string; capacity?: string; price_label?: string; description?: string; image_url?: string };
+  }>("/api/admin/tenants/:tenantId/events", async (request, reply) => {
+    const tenantId = Number(request.params.tenantId);
+    if (!(await requireTenantAccess(request, reply, tenantId))) return;
+    const title = (request.body?.title || "").trim();
+    if (!title) return reply.code(400).send({ error: "Nama paket acara wajib diisi." });
+    const res = await pool.query(
+      `INSERT INTO event_packages (tenant_id, title, capacity, price_label, description, image_url)
+       VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`,
+      [
+        tenantId,
+        title,
+        (request.body?.capacity || "").trim(),
+        (request.body?.price_label || "").trim(),
+        (request.body?.description || "").trim(),
+        (request.body?.image_url || "").trim(),
+      ]
+    );
+    return reply.code(201).send({ event_package: res.rows[0] });
+  });
+
+  app.delete<{ Params: { tenantId: string; id: string } }>(
+    "/api/admin/tenants/:tenantId/events/:id",
+    async (request, reply) => {
+      const tenantId = Number(request.params.tenantId);
+      if (!(await requireTenantAccess(request, reply, tenantId))) return;
+      await pool.query("DELETE FROM event_packages WHERE id = $1 AND tenant_id = $2", [Number(request.params.id), tenantId]);
       return { ok: true };
     }
   );

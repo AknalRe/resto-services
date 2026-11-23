@@ -10,6 +10,7 @@ import { registerAuthRoutes } from "./routes/auth";
 import { registerPublicRoutes } from "./routes/public";
 import { registerTenantAdminRoutes } from "./routes/tenantAdmin";
 import { registerSuperadminRoutes } from "./routes/superadmin";
+import { registerUploadRoutes } from "./routes/uploads";
 
 export async function buildApp(customDbUrl?: string): Promise<FastifyInstance> {
   const app = Fastify({
@@ -39,6 +40,7 @@ export async function buildApp(customDbUrl?: string): Promise<FastifyInstance> {
   registerPublicRoutes(app, pool);
   registerTenantAdminRoutes(app, pool);
   registerSuperadminRoutes(app, pool);
+  registerUploadRoutes(app);
 
   if (fs.existsSync(config.frontendDistDir)) {
     await app.register(fastifyStatic, {

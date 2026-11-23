@@ -1,6 +1,7 @@
 import type {
   AuthUser,
   Branch,
+  EventPackage,
   MenuCategory,
   MenuItem,
   Promo,
@@ -107,6 +108,18 @@ export const api = {
     }),
   deletePromo: (tenantId: number, id: number) =>
     request<{ ok: boolean }>(`/api/admin/tenants/${tenantId}/promos/${id}`, { method: "DELETE" }),
+  createEventPackage: (tenantId: number, payload: Partial<EventPackage>) =>
+    request<{ event_package: EventPackage }>(`/api/admin/tenants/${tenantId}/events`, {
+      method: "POST",
+      body: JSON.stringify(payload),
+    }),
+  deleteEventPackage: (tenantId: number, id: number) =>
+    request<{ ok: boolean }>(`/api/admin/tenants/${tenantId}/events/${id}`, { method: "DELETE" }),
+  uploadImage: (tenantId: number, dataUrl: string, filename: string) =>
+    request<{ url: string; size_bytes: number }>(`/api/admin/tenants/${tenantId}/upload`, {
+      method: "POST",
+      body: JSON.stringify({ data_url: dataUrl, filename }),
+    }),
   updateReservationStatus: (
     tenantId: number,
     id: number,
@@ -149,4 +162,11 @@ export function formatRupiah(amount: number): string {
     currency: "IDR",
     maximumFractionDigits: 0,
   }).format(amount);
+}
+
+export function resolveAssetUrl(raw?: string | null): string {
+  const value = (raw || "").trim();
+  if (!value) return "";
+  if (/^https?:\/\//i.test(value) || value.startsWith("data:")) return value;
+  return withBasePath(value);
 }

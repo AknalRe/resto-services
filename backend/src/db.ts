@@ -144,13 +144,28 @@ async function seedInitialData(pool: Pool): Promise<void> {
 
   // 2. Seed rich demo restaurant tenant if none exists
   const existingTenants = await pool.query("SELECT id FROM tenants LIMIT 1");
-  if ((existingTenants.rowCount ?? 0) > 0) return;
+  if ((existingTenants.rowCount ?? 0) > 0) {
+    // Ensure demo tenant gets starter hero photo if still blank
+    await pool.query(
+      "UPDATE tenants SET hero_image_url = '/demo/hero-heritage.jpg' WHERE slug = 'kedai-heritage' AND hero_image_url = ''"
+    );
+    await pool.query(
+      "UPDATE menu_items SET image_url = '/demo/dish-ayam.jpg' WHERE name = 'Ayam Goreng Mentega Heritage' AND image_url = ''"
+    );
+    await pool.query(
+      "UPDATE menu_items SET image_url = '/demo/dish-gurame.jpg' WHERE name = 'Gurame Asam Manis Nanas' AND image_url = ''"
+    );
+    await pool.query(
+      "UPDATE event_packages SET image_url = '/demo/room-vip.jpg' WHERE title = 'Ruang Privat VIP' AND image_url = ''"
+    );
+    return;
+  }
 
   const tenantRes = await pool.query<{ id: number }>(
     `INSERT INTO tenants (
-      slug, name, tagline, story, theme_preset, primary_color,
+      slug, name, tagline, story, theme_preset, primary_color, hero_image_url,
       instagram_url, plan, status
-    ) VALUES ($1, $2, $3, $4, 'heritage', '#8B1E24', $5, 'multi-cabang', 'active')
+    ) VALUES ($1, $2, $3, $4, 'heritage', '#8B1E24', '/demo/hero-heritage.jpg', $5, 'multi-cabang', 'active')
     RETURNING id`,
     [
       "kedai-heritage",
@@ -192,23 +207,23 @@ async function seedInitialData(pool: Pool): Promise<void> {
 
   // Menu Items
   const items = [
-    [catIds[0], "Ayam Goreng Mentega Heritage", "Ayam kampung goreng renyah disiram saus mentega bawang bombay khas dapur kami.", 88000, "Terlaris", 1],
-    [catIds[0], "Sapi Lada Hitam Hotplate", "Irisan has dalam empuk dimasak dengan lada hitam sangrai dan paprika segar.", 118000, "Terlaris", 2],
-    [catIds[0], "Bebek Panggang Bumbu Rempah", "Bebek panggang kulit garing dengan saus hoisin buatan rumah dan acar lobak.", 145000, "Baru", 3],
-    [catIds[1], "Gurame Asam Manis Nanas", "Ikan gurame segar fillet goreng tepung dengan saus asam manis nanas madu.", 135000, "Terlaris", 1],
-    [catIds[1], "Udang Telur Asin Renyah", "Udang windu goreng kering dibalut saus kuning telur asin gurih dan daun kari.", 128000, "", 2],
-    [catIds[1], "Cumi Goreng Tepung Lada Garam", "Cumi segar potong cincin digoreng garing dengan taburan cabai dan bawang putih.", 92000, "", 3],
-    [catIds[2], "Sup Asparagus Kepiting", "Kaldu ayam bening kental dengan daging kepiting segar dan asparagus muda.", 85000, "Terlaris", 1],
-    [catIds[2], "Brokoli Cah Jamur Shiitake", "Brokoli hijau renyah ditumis cepat dengan jamur shiitake dan saus tiram.", 64000, "", 2],
-    [catIds[3], "Es Jeruk Kunci Madu", "Perasan jeruk kunci segar dengan madu hutan murni.", 28000, "", 1],
-    [catIds[3], "Puding Almond Longan", "Puding almond lembut dingin disajikan dengan buah kelengkeng manis.", 38000, "Baru", 2],
+    [catIds[0], "Ayam Goreng Mentega Heritage", "Ayam kampung goreng renyah disiram saus mentega bawang bombay khas dapur kami.", 88000, "/demo/dish-ayam.jpg", "Terlaris", 1],
+    [catIds[0], "Sapi Lada Hitam Hotplate", "Irisan has dalam empuk dimasak dengan lada hitam sangrai dan paprika segar.", 118000, "", "Terlaris", 2],
+    [catIds[0], "Bebek Panggang Bumbu Rempah", "Bebek panggang kulit garing dengan saus hoisin buatan rumah dan acar lobak.", 145000, "", "Baru", 3],
+    [catIds[1], "Gurame Asam Manis Nanas", "Ikan gurame segar fillet goreng tepung dengan saus asam manis nanas madu.", 135000, "/demo/dish-gurame.jpg", "Terlaris", 1],
+    [catIds[1], "Udang Telur Asin Renyah", "Udang windu goreng kering dibalut saus kuning telur asin gurih dan daun kari.", 128000, "", "", 2],
+    [catIds[1], "Cumi Goreng Tepung Lada Garam", "Cumi segar potong cincin digoreng garing dengan taburan cabai dan bawang putih.", 92000, "", "", 3],
+    [catIds[2], "Sup Asparagus Kepiting", "Kaldu ayam bening kental dengan daging kepiting segar dan asparagus muda.", 85000, "", "Terlaris", 1],
+    [catIds[2], "Brokoli Cah Jamur Shiitake", "Brokoli hijau renyah ditumis cepat dengan jamur shiitake dan saus tiram.", 64000, "", "", 2],
+    [catIds[3], "Es Jeruk Kunci Madu", "Perasan jeruk kunci segar dengan madu hutan murni.", 28000, "", "", 1],
+    [catIds[3], "Puding Almond Longan", "Puding almond lembut dingin disajikan dengan buah kelengkeng manis.", 38000, "", "Baru", 2],
   ];
 
-  for (const [catId, name, desc, price, badge, sortOrder] of items) {
+  for (const [catId, name, desc, price, imgUrl, badge, sortOrder] of items) {
     await pool.query(
-      `INSERT INTO menu_items (tenant_id, category_id, name, description, price, badge, is_available, sort_order)
-       VALUES ($1, $2, $3, $4, $5, $6, TRUE, $7)`,
-      [tenantId, catId, name, desc, price, badge, sortOrder]
+      `INSERT INTO menu_items (tenant_id, category_id, name, description, price, image_url, badge, is_available, sort_order)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, TRUE, $8)`,
+      [tenantId, catId, name, desc, price, imgUrl, badge, sortOrder]
     );
   }
 
@@ -223,11 +238,11 @@ async function seedInitialData(pool: Pool): Promise<void> {
 
   // Event Packages
   await pool.query(
-    `INSERT INTO event_packages (tenant_id, title, capacity, price_label, description, sort_order)
+    `INSERT INTO event_packages (tenant_id, title, capacity, price_label, description, image_url, sort_order)
      VALUES
-       ($1, 'Ruang Privat VIP', '10 - 18 Tamu', 'Mulai Rp 2.500.000', 'Ruang tertutup ber-AC dengan meja bundar, TV presentasi, dan pelayan khusus untuk rapat bisnis atau jamuan keluarga.', 1),
-       ($1, 'Paket Sangjit & Lamaran', '30 - 60 Tamu', 'Mulai Rp 7.800.000', 'Set menu 8 hidangan lengkap, dekorasi meja standar, sound system, dan parkir prioritas.', 2),
-       ($1, 'Jamuan Ulang Tahun & Arisan', '20 - 40 Tamu', 'Mulai Rp 4.500.000', 'Pilihan menu prasmanan atau set meja keluarga dengan free flow teh dan area foto keluarga.', 3)`,
+       ($1, 'Ruang Privat VIP', '10 - 18 Tamu', 'Mulai Rp 2.500.000', 'Ruang tertutup ber-AC dengan meja bundar, TV presentasi, dan pelayan khusus untuk rapat bisnis atau jamuan keluarga.', '/demo/room-vip.jpg', 1),
+       ($1, 'Paket Sangjit & Lamaran', '30 - 60 Tamu', 'Mulai Rp 7.800.000', 'Set menu 8 hidangan lengkap, dekorasi meja standar, sound system, dan parkir prioritas.', '/demo/hero-heritage.jpg', 2),
+       ($1, 'Jamuan Ulang Tahun & Arisan', '20 - 40 Tamu', 'Mulai Rp 4.500.000', 'Pilihan menu prasmanan atau set meja keluarga dengan free flow teh dan area foto keluarga.', '', 3)`,
     [tenantId]
   );
 }
