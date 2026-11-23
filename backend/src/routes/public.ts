@@ -37,7 +37,7 @@ export function registerPublicRoutes(app: FastifyInstance, pool: Pool): void {
     }
 
     const list = await pool.query(
-      `SELECT t.id, t.slug, t.name, t.tagline, t.theme_preset, t.primary_color, t.custom_domain,
+      `SELECT t.id, t.slug, t.name, t.tagline, t.theme_preset, t.primary_color, t.custom_domain, t.hero_image_url,
         (SELECT COUNT(*)::int FROM branches b WHERE b.tenant_id = t.id) AS branch_count,
         (SELECT COUNT(*)::int FROM menu_items m WHERE m.tenant_id = t.id AND m.is_available = TRUE) AS menu_count
        FROM tenants t

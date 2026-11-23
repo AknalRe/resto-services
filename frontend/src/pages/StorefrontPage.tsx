@@ -7,7 +7,7 @@ import {
   ExternalLink,
   MapPin,
   MessageCircle,
-  Palette,
+  Phone,
   Search,
   Users,
   UtensilsCrossed,
@@ -19,12 +19,6 @@ interface StorefrontPageProps {
   forcedSlug?: string;
 }
 
-const THEME_LABELS: Record<ThemePreset, string> = {
-  heritage: "Heritage",
-  bistro: "Bistro",
-  cafe: "Cafe",
-};
-
 export function StorefrontPage({ forcedSlug }: StorefrontPageProps) {
   const params = useParams<{ slug: string }>();
   const slug = forcedSlug || params.slug || "";
@@ -33,7 +27,6 @@ export function StorefrontPage({ forcedSlug }: StorefrontPageProps) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const [previewPreset, setPreviewPreset] = useState<ThemePreset | null>(null);
   const [activeCatId, setActiveCatId] = useState<number | "all">("all");
   const [menuQuery, setMenuQuery] = useState("");
 
@@ -57,24 +50,26 @@ export function StorefrontPage({ forcedSlug }: StorefrontPageProps) {
       .getStorefront(slug)
       .then((res) => {
         setData(res);
-        setPreviewPreset(null);
         if (res.branches.length > 0) setBranchId(String(res.branches[0].id));
+        document.documentElement.setAttribute("data-preset", res.tenant.theme_preset || "heritage");
         document.documentElement.style.setProperty("--resto-primary", res.tenant.primary_color || "#8B1E24");
       })
       .catch((err) => {
         setError(err instanceof Error ? err.message : "Gagal memuat halaman restoran.");
       })
       .finally(() => setLoading(false));
-  }, [slug]);
 
-  const activePreset: ThemePreset = previewPreset || data?.tenant.theme_preset || "heritage";
-
-  useEffect(() => {
-    document.documentElement.setAttribute("data-preset", activePreset);
     return () => {
       document.documentElement.removeAttribute("data-preset");
     };
-  }, [activePreset]);
+  }, [slug]);
+
+  const activePreset: ThemePreset = data?.tenant.theme_preset || "heritage";
+
+  const signatureDishes = useMemo(() => {
+    if (!data) return [];
+    return data.menu_items.filter((item) => item.is_available && (item.image_url || item.badge)).slice(0, 4);
+  }, [data]);
 
   const filteredMenu = useMemo(() => {
     if (!data) return [];
@@ -153,11 +148,34 @@ export function StorefrontPage({ forcedSlug }: StorefrontPageProps) {
 
   return (
     <div className="min-h-screen" style={{ backgroundColor: "var(--bg)", color: "var(--ink)" }}>
-      {/* Header */}
+      {/* Heritage top hospitality info strip */}
+      {isHeritage && primaryBranch && (
+        <div className="border-b px-4 py-2 text-[11px] text-amber-100" style={{ backgroundColor: "#231214", borderColor: "rgba(184,138,62,0.28)" }}>
+          <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-2 sm:px-2">
+            <span className="inline-flex items-center gap-1.5">
+              <Clock size={12} strokeWidth={1.75} className="text-amber-300" aria-hidden="true" />
+              {primaryBranch.open_hours} · {primaryBranch.name}
+            </span>
+            {primaryBranch.whatsapp_number && (
+              <a
+                href={`https://wa.me/${primaryBranch.whatsapp_number.replace(/[^0-9]/g, "")}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1.5 font-mono text-amber-200 no-underline hover:underline"
+              >
+                <Phone size={11} strokeWidth={1.75} aria-hidden="true" />
+                Reservasi: +{primaryBranch.whatsapp_number.replace(/[^0-9]/g, "")}
+              </a>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Navbar */}
       <header
         className="sticky top-0 z-30 border-b backdrop-blur-md"
         style={{
-          backgroundColor: isBistro ? "rgba(15,23,42,0.94)" : "rgba(255,255,255,0.94)",
+          backgroundColor: isBistro ? "rgba(15,23,42,0.95)" : "rgba(255,255,255,0.94)",
           borderColor: isBistro ? "rgba(148,163,184,0.2)" : "var(--border)",
           color: isBistro ? "#f8fafc" : "var(--ink)",
         }}
@@ -175,7 +193,7 @@ export function StorefrontPage({ forcedSlug }: StorefrontPageProps) {
               </span>
             )}
             <span
-              className={`${isBistro ? "text-base font-bold tracking-wide uppercase" : "font-display text-xl font-bold tracking-tight"}`}
+              className={isBistro ? "text-base font-bold uppercase tracking-wider" : "font-display text-2xl font-bold tracking-tight"}
               style={{ color: isBistro ? "#f8fafc" : "var(--ink)" }}
             >
               {tenant.name}
@@ -184,7 +202,7 @@ export function StorefrontPage({ forcedSlug }: StorefrontPageProps) {
 
           <nav
             aria-label="Navigasi restoran"
-            className="hidden items-center gap-5 text-xs font-semibold sm:flex"
+            className="hidden items-center gap-6 text-xs font-semibold sm:flex"
             style={{ color: isBistro ? "#cbd5e1" : "var(--ink-body)" }}
           >
             <a href="#cerita" className="no-underline hover:underline">Tentang Kami</a>
@@ -194,7 +212,7 @@ export function StorefrontPage({ forcedSlug }: StorefrontPageProps) {
             <a href="#cabang" className="no-underline hover:underline">Cabang</a>
             <a
               href="#reservasi"
-              className="inline-flex h-9 items-center gap-1.5 rounded-lg px-3.5 text-xs font-semibold text-white no-underline transition-opacity hover:opacity-90"
+              className={`inline-flex h-9 items-center gap-1.5 px-4 text-xs font-semibold text-white no-underline transition-opacity hover:opacity-90 ${isCafe ? "rounded-full" : "rounded-lg"}`}
               style={{ backgroundColor: tenant.primary_color }}
             >
               <Calendar size={13} strokeWidth={1.75} aria-hidden="true" />
@@ -204,7 +222,7 @@ export function StorefrontPage({ forcedSlug }: StorefrontPageProps) {
 
           <a
             href="#reservasi"
-            className="inline-flex h-9 items-center rounded-lg px-3 text-xs font-semibold text-white no-underline sm:hidden"
+            className={`inline-flex h-9 items-center px-3.5 text-xs font-semibold text-white no-underline sm:hidden ${isCafe ? "rounded-full" : "rounded-lg"}`}
             style={{ backgroundColor: tenant.primary_color }}
           >
             Reservasi
@@ -213,9 +231,9 @@ export function StorefrontPage({ forcedSlug }: StorefrontPageProps) {
       </header>
 
       <main>
-        {/* HERO — 3 distinct layout themes */}
+        {/* HERO — Controlled strictly by admin theme_preset */}
         {isHeritage && (
-          <section id="beranda" className="relative flex min-h-[72vh] items-center justify-center overflow-hidden bg-stone-950 text-white">
+          <section id="beranda" className="relative flex min-h-[78vh] items-center justify-center overflow-hidden bg-stone-950 text-white">
             {heroSrc && (
               <img
                 src={heroSrc}
@@ -223,21 +241,27 @@ export function StorefrontPage({ forcedSlug }: StorefrontPageProps) {
                 className="absolute inset-0 h-full w-full object-cover opacity-55"
               />
             )}
-            <div className="absolute inset-0 bg-gradient-to-b from-stone-950/75 via-stone-950/55 to-stone-950/85" />
-            <div className="relative z-10 mx-auto max-w-4xl px-4 py-20 text-center sm:px-6">
-              <p className="font-mono text-xs font-semibold uppercase tracking-[0.22em] text-amber-300">
-                {branches.length > 1 ? `${branches.length} Cabang Resmi` : primaryBranch?.open_hours || "Buka Setiap Hari"}
-              </p>
-              <h1 className="font-display mt-3 text-4xl font-bold leading-tight tracking-tight text-white sm:text-6xl">
+            <div className="absolute inset-0 bg-gradient-to-b from-stone-950/80 via-stone-950/50 to-stone-950/85" />
+            <div className="relative z-10 mx-auto max-w-4xl px-4 py-24 text-center sm:px-6">
+              <div className="mx-auto mb-4 flex items-center justify-center gap-3">
+                <span className="h-px w-10 bg-amber-400/70" aria-hidden="true" />
+                <span className="font-mono text-[11px] font-semibold uppercase tracking-[0.26em] text-amber-300">
+                  {branches.length > 1 ? `${branches.length} Cabang Resmi` : "Sajian Keluarga Klasik"}
+                </span>
+                <span className="h-px w-10 bg-amber-400/70" aria-hidden="true" />
+              </div>
+
+              <h1 className="font-display text-5xl font-bold leading-none tracking-tight text-white sm:text-7xl">
                 {tenant.name}
               </h1>
-              <p className="mx-auto mt-4 max-w-2xl text-base leading-relaxed text-stone-200 sm:text-lg">
+              <p className="mx-auto mt-5 max-w-2xl text-base leading-relaxed text-stone-200 sm:text-lg">
                 {tenant.tagline}
               </p>
-              <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
+
+              <div className="mt-9 flex flex-wrap items-center justify-center gap-3.5">
                 <a
                   href="#reservasi"
-                  className="inline-flex h-12 items-center gap-2 rounded-lg px-6 text-sm font-semibold text-white no-underline transition-opacity hover:opacity-90"
+                  className="inline-flex h-12 items-center gap-2 rounded-lg px-7 text-sm font-semibold text-white no-underline transition-opacity hover:opacity-90"
                   style={{ backgroundColor: tenant.primary_color }}
                 >
                   <Calendar size={15} strokeWidth={1.75} aria-hidden="true" />
@@ -245,7 +269,7 @@ export function StorefrontPage({ forcedSlug }: StorefrontPageProps) {
                 </a>
                 <a
                   href="#menu"
-                  className="inline-flex h-12 items-center gap-2 rounded-lg border border-white/40 bg-white/10 px-6 text-sm font-semibold text-white no-underline backdrop-blur-sm transition-colors hover:bg-white/20"
+                  className="inline-flex h-12 items-center gap-2 rounded-lg border border-amber-200/45 bg-stone-950/40 px-7 text-sm font-semibold text-amber-50 no-underline backdrop-blur-sm transition-colors hover:bg-white/15"
                 >
                   Lihat Buku Menu
                 </a>
@@ -256,7 +280,7 @@ export function StorefrontPage({ forcedSlug }: StorefrontPageProps) {
 
         {isBistro && (
           <section id="beranda" className="border-b bg-slate-950 text-white" style={{ borderColor: "rgba(148,163,184,0.2)" }}>
-            <div className="mx-auto grid max-w-6xl grid-cols-1 gap-8 px-4 py-12 sm:px-6 lg:grid-cols-12 lg:items-center lg:py-16">
+            <div className="mx-auto grid max-w-6xl grid-cols-1 gap-10 px-4 py-14 sm:px-6 lg:grid-cols-12 lg:items-center lg:py-20">
               <div className="lg:col-span-6">
                 <p className="font-mono text-xs font-semibold uppercase tracking-widest text-amber-400">
                   {primaryBranch?.open_hours || "Modern Dining"}
@@ -269,17 +293,17 @@ export function StorefrontPage({ forcedSlug }: StorefrontPageProps) {
                     {tenant.story}
                   </p>
                 )}
-                <div className="mt-7 flex flex-wrap gap-3">
+                <div className="mt-8 flex flex-wrap gap-3">
                   <a
                     href="#menu"
-                    className="inline-flex h-11 items-center rounded-lg px-5 text-sm font-semibold text-white no-underline"
+                    className="inline-flex h-11 items-center rounded-lg px-6 text-sm font-semibold text-white no-underline"
                     style={{ backgroundColor: tenant.primary_color }}
                   >
-                    Jelajahi Menu
+                    Jelajahi Buku Menu
                   </a>
                   <a
                     href="#reservasi"
-                    className="inline-flex h-11 items-center rounded-lg border border-slate-600 px-5 text-sm font-semibold text-slate-100 no-underline hover:bg-slate-800"
+                    className="inline-flex h-11 items-center rounded-lg border border-slate-600 px-6 text-sm font-semibold text-slate-100 no-underline hover:bg-slate-800"
                   >
                     Pesan Meja
                   </a>
@@ -288,7 +312,7 @@ export function StorefrontPage({ forcedSlug }: StorefrontPageProps) {
               <div className="lg:col-span-6">
                 {heroSrc && (
                   <div className="overflow-hidden rounded-xl border border-slate-800">
-                    <img src={heroSrc} alt={tenant.name} className="h-[340px] w-full object-cover sm:h-[400px]" />
+                    <img src={heroSrc} alt={tenant.name} className="h-[340px] w-full object-cover sm:h-[420px]" />
                   </div>
                 )}
               </div>
@@ -298,10 +322,10 @@ export function StorefrontPage({ forcedSlug }: StorefrontPageProps) {
 
         {isCafe && (
           <section id="beranda" className="mx-auto max-w-6xl px-4 pt-8 pb-6 sm:px-6">
-            <div className="overflow-hidden rounded-2xl border" style={{ backgroundColor: "var(--surface)", borderColor: "var(--border)" }}>
+            <div className="overflow-hidden rounded-3xl border" style={{ backgroundColor: "var(--surface)", borderColor: "var(--border)" }}>
               <div className="grid grid-cols-1 lg:grid-cols-12">
-                <div className="flex flex-col justify-center p-7 sm:p-10 lg:col-span-6">
-                  <span className="inline-flex w-fit rounded-full px-3 py-1 text-[11px] font-semibold" style={{ backgroundColor: "var(--surface-muted)", color: tenant.primary_color }}>
+                <div className="flex flex-col justify-center p-8 sm:p-12 lg:col-span-6">
+                  <span className="inline-flex w-fit rounded-full px-3.5 py-1 text-[11px] font-semibold" style={{ backgroundColor: "var(--surface-muted)", color: tenant.primary_color }}>
                     {primaryBranch?.open_hours || "Buka Setiap Hari"}
                   </span>
                   <h1 className="font-display mt-3 text-4xl font-bold leading-tight sm:text-5xl" style={{ color: "var(--ink)" }}>
@@ -312,24 +336,24 @@ export function StorefrontPage({ forcedSlug }: StorefrontPageProps) {
                       {tenant.story}
                     </p>
                   )}
-                  <div className="mt-6 flex flex-wrap gap-2.5">
+                  <div className="mt-7 flex flex-wrap gap-2.5">
                     <a
                       href="#menu"
-                      className="inline-flex h-10 items-center rounded-full px-5 text-xs font-semibold text-white no-underline"
+                      className="inline-flex h-11 items-center rounded-full px-6 text-xs font-semibold text-white no-underline"
                       style={{ backgroundColor: tenant.primary_color }}
                     >
                       Lihat Menu Hari Ini
                     </a>
                     <a
                       href="#reservasi"
-                      className="inline-flex h-10 items-center rounded-full border px-5 text-xs font-semibold no-underline"
+                      className="inline-flex h-11 items-center rounded-full border px-6 text-xs font-semibold no-underline"
                       style={{ borderColor: "var(--border-strong)", color: "var(--ink)" }}
                     >
                       Reservasi Meja
                     </a>
                   </div>
                 </div>
-                <div className="min-h-[260px] lg:col-span-6">
+                <div className="min-h-[280px] lg:col-span-6">
                   {heroSrc && <img src={heroSrc} alt={tenant.name} className="h-full w-full object-cover" />}
                 </div>
               </div>
@@ -337,12 +361,12 @@ export function StorefrontPage({ forcedSlug }: StorefrontPageProps) {
           </section>
         )}
 
-        {/* Editorial Story / Heritage Split (Angke-style About section) */}
-        <section id="cerita" className="border-b py-12 sm:py-16" style={{ borderColor: "var(--border)", backgroundColor: "var(--surface)" }}>
-          <div className="mx-auto grid max-w-6xl grid-cols-1 gap-8 px-4 sm:px-6 lg:grid-cols-12 lg:items-center">
+        {/* Editorial Story / Heritage About Section */}
+        <section id="cerita" className="border-b py-14 sm:py-16" style={{ borderColor: "var(--border)", backgroundColor: "var(--surface)" }}>
+          <div className="mx-auto grid max-w-6xl grid-cols-1 gap-10 px-4 sm:px-6 lg:grid-cols-12 lg:items-center">
             <div className="lg:col-span-7">
               <p className="font-mono text-xs font-semibold uppercase tracking-widest" style={{ color: tenant.primary_color }}>
-                Cerita &amp; Tradisi Dapur
+                Tentang {tenant.name}
               </p>
               <h2 className="font-display mt-2 text-3xl font-bold sm:text-4xl" style={{ color: "var(--ink)" }}>
                 Kehangatan Meja Makan untuk Setiap Momen Bersama
@@ -350,45 +374,108 @@ export function StorefrontPage({ forcedSlug }: StorefrontPageProps) {
               <p className="mt-4 text-sm leading-relaxed sm:text-[15px]" style={{ color: "var(--ink-body)" }}>
                 {tenant.story || "Kami menyajikan hidangan pilihan yang dimasak segar setiap hari dengan ruang makan nyaman untuk keluarga dan kolega."}
               </p>
-              <div className="mt-6 grid grid-cols-3 gap-4 border-t pt-5" style={{ borderColor: "var(--border)" }}>
+              <div className="mt-7 grid grid-cols-3 gap-4 border-t pt-5" style={{ borderColor: "var(--border)" }}>
                 <div>
-                  <div className="font-mono text-xl font-bold" style={{ color: tenant.primary_color }}>{branches.length}</div>
+                  <div className="font-mono text-2xl font-bold" style={{ color: tenant.primary_color }}>{branches.length}</div>
                   <div className="text-xs" style={{ color: "var(--ink-muted)" }}>Cabang Aktif</div>
                 </div>
                 <div>
-                  <div className="font-mono text-xl font-bold" style={{ color: tenant.primary_color }}>{data.menu_items.length}</div>
+                  <div className="font-mono text-2xl font-bold" style={{ color: tenant.primary_color }}>{data.menu_items.length}</div>
                   <div className="text-xs" style={{ color: "var(--ink-muted)" }}>Pilihan Menu</div>
                 </div>
                 <div>
-                  <div className="font-mono text-xl font-bold" style={{ color: tenant.primary_color }}>{event_packages.length}</div>
+                  <div className="font-mono text-2xl font-bold" style={{ color: tenant.primary_color }}>{event_packages.length}</div>
                   <div className="text-xs" style={{ color: "var(--ink-muted)" }}>Paket Acara</div>
                 </div>
               </div>
             </div>
+
             <div className="lg:col-span-5">
               {primaryBranch && (
-                <div className="rounded-xl border p-6" style={{ backgroundColor: "var(--bg)", borderColor: "var(--border)" }}>
-                  <div className="text-xs font-semibold uppercase tracking-wider" style={{ color: "var(--ink-muted)" }}>
-                    Cabang Utama
+                <div
+                  className={`border p-6 ${isCafe ? "rounded-2xl" : "rounded-xl"}`}
+                  style={{ backgroundColor: "var(--bg)", borderColor: "var(--border)" }}
+                >
+                  <div className="font-mono text-[11px] font-semibold uppercase tracking-wider" style={{ color: "var(--resto-gold)" }}>
+                    Lokasi Utama
                   </div>
                   <div className="mt-2 text-base font-bold" style={{ color: "var(--ink)" }}>{primaryBranch.name}</div>
-                  <p className="mt-1 text-xs leading-relaxed" style={{ color: "var(--ink-body)" }}>{primaryBranch.address}</p>
+                  <p className="mt-1.5 text-xs leading-relaxed" style={{ color: "var(--ink-body)" }}>{primaryBranch.address}</p>
                   <div className="mt-3 flex items-center gap-1.5 text-xs font-medium" style={{ color: "var(--ink-muted)" }}>
                     <Clock size={13} strokeWidth={1.75} aria-hidden="true" />
                     {primaryBranch.open_hours}
                   </div>
+                  {primaryBranch.maps_url && (
+                    <a
+                      href={primaryBranch.maps_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="mt-4 inline-flex items-center gap-1 text-xs font-semibold no-underline hover:underline"
+                      style={{ color: tenant.primary_color }}
+                    >
+                      Buka Petunjuk Arah di Google Maps
+                      <ExternalLink size={12} strokeWidth={1.75} aria-hidden="true" />
+                    </a>
+                  )}
                 </div>
               )}
             </div>
           </div>
         </section>
 
+        {/* Signature Dishes Visual Strip (if dishes have photos/badges) */}
+        {signatureDishes.length > 0 && (
+          <section className="mx-auto max-w-6xl px-4 pt-12 sm:px-6">
+            <div className="flex items-end justify-between gap-2">
+              <div>
+                <p className="font-mono text-xs font-semibold uppercase tracking-wider" style={{ color: tenant.primary_color }}>
+                  Pilihan Koki
+                </p>
+                <h2 className="font-display mt-1 text-3xl font-bold" style={{ color: "var(--ink)" }}>
+                  Hidangan Unggulan
+                </h2>
+              </div>
+            </div>
+
+            <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+              {signatureDishes.map((dish) => {
+                const imgSrc = resolveAssetUrl(dish.image_url);
+                return (
+                  <article
+                    key={dish.id}
+                    className={`overflow-hidden border ${isCafe ? "rounded-2xl" : "rounded-xl"}`}
+                    style={{ backgroundColor: "var(--surface)", borderColor: "var(--border)" }}
+                  >
+                    {imgSrc && (
+                      <div className="h-40 w-full overflow-hidden bg-stone-900">
+                        <img src={imgSrc} alt={dish.name} className="h-full w-full object-cover transition-transform duration-300 hover:scale-105" loading="lazy" />
+                      </div>
+                    )}
+                    <div className="p-4">
+                      {dish.badge && (
+                        <span className="inline-block rounded px-1.5 py-0.5 text-[10px] font-semibold" style={{ backgroundColor: "var(--amber-bg)", color: "var(--amber)" }}>
+                          {dish.badge}
+                        </span>
+                      )}
+                      <h3 className="mt-1.5 text-sm font-bold" style={{ color: "var(--ink)" }}>{dish.name}</h3>
+                      <p className="mt-1 line-clamp-2 text-xs leading-relaxed" style={{ color: "var(--ink-body)" }}>{dish.description}</p>
+                      <div className="mt-2.5 font-mono text-sm font-bold" style={{ color: tenant.primary_color }}>
+                        {formatRupiah(dish.price)}
+                      </div>
+                    </div>
+                  </article>
+                );
+              })}
+            </div>
+          </section>
+        )}
+
         {/* Buku Menu Online */}
         <section id="menu" className="mx-auto max-w-6xl px-4 py-12 sm:px-6 sm:py-16">
           <div className="flex flex-col justify-between gap-4 border-b pb-5 md:flex-row md:items-end" style={{ borderColor: "var(--border)" }}>
             <div>
               <p className="font-mono text-xs font-semibold uppercase tracking-wider" style={{ color: tenant.primary_color }}>
-                Daftar Hidangan
+                Daftar Hidangan Lengkap
               </p>
               <h2 className="font-display mt-1 text-3xl font-bold sm:text-4xl" style={{ color: "var(--ink)" }}>
                 Buku Menu Online
@@ -524,7 +611,7 @@ export function StorefrontPage({ forcedSlug }: StorefrontPageProps) {
                   return (
                     <div
                       key={promo.id}
-                      className="overflow-hidden rounded-xl border"
+                      className={`overflow-hidden border ${isCafe ? "rounded-2xl" : "rounded-xl"}`}
                       style={{ backgroundColor: "var(--bg)", borderColor: "var(--border)" }}
                     >
                       {bannerSrc && <img src={bannerSrc} alt={promo.title} className="h-44 w-full object-cover" loading="lazy" />}
@@ -560,7 +647,7 @@ export function StorefrontPage({ forcedSlug }: StorefrontPageProps) {
                 return (
                   <article
                     key={pkg.id}
-                    className="flex flex-col justify-between overflow-hidden rounded-xl border"
+                    className={`flex flex-col justify-between overflow-hidden border ${isCafe ? "rounded-2xl" : "rounded-xl"}`}
                     style={{ backgroundColor: "var(--surface)", borderColor: "var(--border)" }}
                   >
                     <div>
@@ -589,7 +676,7 @@ export function StorefrontPage({ forcedSlug }: StorefrontPageProps) {
                       <button
                         type="button"
                         onClick={() => prefillEvent(pkg.title)}
-                        className="h-9 w-full rounded-lg border text-xs font-semibold transition-colors hover:bg-stone-100"
+                        className={`h-9 w-full border text-xs font-semibold transition-colors hover:bg-stone-100 ${isCafe ? "rounded-full" : "rounded-lg"}`}
                         style={{ borderColor: "var(--border-strong)", color: "var(--ink)" }}
                       >
                         Tanya &amp; Reservasi Paket Ini
@@ -615,7 +702,11 @@ export function StorefrontPage({ forcedSlug }: StorefrontPageProps) {
 
               <div className="space-y-3 pt-1">
                 {branches.map((branch) => (
-                  <div key={branch.id} className="rounded-xl border p-4" style={{ backgroundColor: "var(--bg)", borderColor: "var(--border)" }}>
+                  <div
+                    key={branch.id}
+                    className={`border p-4 ${isCafe ? "rounded-2xl" : "rounded-xl"}`}
+                    style={{ backgroundColor: "var(--bg)", borderColor: "var(--border)" }}
+                  >
                     <div className="text-sm font-bold" style={{ color: "var(--ink)" }}>{branch.name}</div>
                     <p className="mt-1 text-xs leading-relaxed" style={{ color: "var(--ink-body)" }}>{branch.address}</p>
                     <div className="mt-2 flex items-center gap-1.5 text-xs" style={{ color: "var(--ink-muted)" }}>
@@ -655,7 +746,10 @@ export function StorefrontPage({ forcedSlug }: StorefrontPageProps) {
             </div>
 
             <div className="lg:col-span-7">
-              <div className="rounded-xl border p-6" style={{ backgroundColor: "var(--bg)", borderColor: "var(--border)" }}>
+              <div
+                className={`border p-6 ${isCafe ? "rounded-2xl" : "rounded-xl"}`}
+                style={{ backgroundColor: "var(--bg)", borderColor: "var(--border)" }}
+              >
                 <h2 className="font-display text-2xl font-bold" style={{ color: "var(--ink)" }}>
                   Formulir Reservasi Meja &amp; Acara
                 </h2>
@@ -796,7 +890,7 @@ export function StorefrontPage({ forcedSlug }: StorefrontPageProps) {
                     <button
                       type="submit"
                       disabled={submitting}
-                      className="h-11 w-full rounded-lg text-sm font-semibold text-white transition-opacity hover:opacity-90"
+                      className={`h-11 w-full text-sm font-semibold text-white transition-opacity hover:opacity-90 ${isCafe ? "rounded-full" : "rounded-lg"}`}
                       style={{ backgroundColor: tenant.primary_color }}
                     >
                       {submitting ? "Mengirim Reservasi..." : "Kirim Permintaan Reservasi"}
@@ -809,33 +903,27 @@ export function StorefrontPage({ forcedSlug }: StorefrontPageProps) {
         </section>
       </main>
 
-      <footer className="border-t py-6" style={{ borderColor: "var(--border)", backgroundColor: "var(--bg)" }}>
-        <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-4 text-xs sm:px-6" style={{ color: "var(--ink-muted)" }}>
-          <span>{tenant.name}</span>
-
-          {/* Subtle theme preview switcher in footer */}
-          <div className="flex items-center gap-1.5" role="group" aria-label="Pratinjau tema tampilan">
-            <Palette size={12} strokeWidth={1.75} aria-hidden="true" />
-            {(["heritage", "bistro", "cafe"] as const).map((preset) => (
-              <button
-                key={preset}
-                type="button"
-                onClick={() => setPreviewPreset(preset)}
-                className="rounded px-2 py-0.5 text-[11px] font-semibold transition-colors"
-                style={{
-                  backgroundColor: activePreset === preset ? tenant.primary_color : "var(--surface)",
-                  color: activePreset === preset ? "#ffffff" : "var(--ink-body)",
-                  border: "1px solid var(--border)",
-                }}
-              >
-                {THEME_LABELS[preset]}
-              </button>
-            ))}
-          </div>
-
+      <footer
+        className="border-t py-7"
+        style={{
+          borderColor: isBistro ? "rgba(148,163,184,0.2)" : "var(--border)",
+          backgroundColor: isBistro ? "#0f172a" : "var(--bg)",
+          color: isBistro ? "#94a3b8" : "var(--ink-muted)",
+        }}
+      >
+        <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-2 px-4 text-xs sm:px-6">
+          <span className="font-semibold" style={{ color: isBistro ? "#f8fafc" : "var(--ink)" }}>
+            {tenant.name}
+          </span>
           <span>
             Didukung oleh{" "}
-            <a href="https://reneo.my.id" target="_blank" rel="noopener noreferrer" className="font-semibold hover:underline" style={{ color: "var(--ink-body)" }}>
+            <a
+              href="https://reneo.my.id"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="font-semibold hover:underline"
+              style={{ color: isBistro ? "#e2e8f0" : "var(--ink-body)" }}
+            >
               Reneo Resto
             </a>
           </span>
