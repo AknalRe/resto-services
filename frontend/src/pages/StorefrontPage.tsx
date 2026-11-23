@@ -152,14 +152,20 @@ export function StorefrontPage({ forcedSlug, previewPreset, isCustomDomain }: St
       {/* Preview switcher bar ONLY on /preview/:preset (never shown to real customers on /r/:slug or custom domains) */}
       {previewPreset && (
         <div className="border-b px-3 py-2 text-xs text-white sm:px-4" style={{ backgroundColor: "#0B2A57", borderColor: "rgba(255,255,255,0.15)" }}>
-          <div className="mx-auto flex max-w-6xl items-center justify-between gap-2 overflow-x-auto whitespace-nowrap">
-            <div className="flex items-center gap-1.5">
-              <span className="hidden opacity-80 sm:inline">Contoh Tema:</span>
+          <div className="mx-auto flex max-w-6xl items-center gap-2.5">
+            <Link
+              to="/"
+              className="inline-flex h-8 shrink-0 items-center gap-1 rounded bg-white/10 px-2.5 font-semibold text-amber-300 no-underline hover:bg-white/20"
+            >
+              <ArrowLeft size={12} strokeWidth={2} aria-hidden="true" />
+              <span>Kembali</span>
+            </Link>
+            <div className="no-scrollbar flex flex-1 items-center gap-1.5 overflow-x-auto whitespace-nowrap">
               {ALL_THEME_PRESETS.map((p) => (
                 <Link
                   key={p}
                   to={`/preview/${p}`}
-                  className="rounded px-2.5 py-1 text-[11px] font-semibold no-underline transition"
+                  className="inline-flex h-8 shrink-0 items-center rounded px-3 text-[11px] font-semibold no-underline transition"
                   style={{
                     backgroundColor: previewPreset === p ? "#FFFFFF" : "rgba(255,255,255,0.14)",
                     color: previewPreset === p ? "#0B2A57" : "#FFFFFF",
@@ -169,10 +175,6 @@ export function StorefrontPage({ forcedSlug, previewPreset, isCustomDomain }: St
                 </Link>
               ))}
             </div>
-            <Link to="/" className="inline-flex shrink-0 items-center gap-1 font-semibold text-amber-300 no-underline hover:underline">
-              <ArrowLeft size={12} strokeWidth={2} aria-hidden="true" />
-              <span className="hidden sm:inline">Beranda</span>
-            </Link>
           </div>
         </div>
       )}

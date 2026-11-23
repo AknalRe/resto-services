@@ -42,7 +42,7 @@ export function CoastalTemplate({
   };
 
   return (
-    <div className="min-h-screen overflow-x-hidden bg-white pb-20 text-[#0E2A3F] md:pb-0">
+    <div className="min-h-screen overflow-x-clip bg-white pb-20 text-[#0E2A3F] md:pb-0">
       {/* Crisp Marine Header (text links only, zero duplicate buttons) */}
       <header className="sticky top-0 z-30 border-b border-[#0F4C75]/10 bg-white/94 backdrop-blur-md">
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-3.5 sm:px-6">

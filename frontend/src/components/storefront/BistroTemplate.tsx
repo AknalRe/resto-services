@@ -42,7 +42,7 @@ export function BistroTemplate({
   };
 
   return (
-    <div className="min-h-screen overflow-x-hidden bg-[#0B0C0E] pb-20 text-slate-100 md:pb-0">
+    <div className="min-h-screen overflow-x-clip bg-[#0B0C0E] pb-20 text-slate-100 md:pb-0">
       {/* Minimalist Architectural Top Bar */}
       <header className="sticky top-0 z-30 border-b border-white/10 bg-[#0B0C0E]/92 backdrop-blur-md">
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-3 sm:px-6">

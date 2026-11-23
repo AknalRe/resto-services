@@ -194,14 +194,20 @@ export function MenuPage({ forcedSlug, previewPreset, isCustomDomain }: MenuPage
       {/* Preview switcher bar ONLY in /preview/:preset/menu */}
       {previewPreset && (
         <div className="border-b px-3 py-2 text-xs text-white sm:px-4" style={{ backgroundColor: "#0B2A57", borderColor: "rgba(255,255,255,0.15)" }}>
-          <div className="mx-auto flex max-w-6xl items-center justify-between gap-2 overflow-x-auto whitespace-nowrap">
-            <div className="flex items-center gap-1.5">
-              <span className="hidden opacity-80 sm:inline">Tema Menu:</span>
+          <div className="mx-auto flex max-w-6xl items-center gap-2.5">
+            <Link
+              to="/"
+              className="inline-flex h-8 shrink-0 items-center gap-1 rounded bg-white/10 px-2.5 font-semibold text-amber-300 no-underline hover:bg-white/20"
+            >
+              <ArrowLeft size={12} strokeWidth={2} aria-hidden="true" />
+              <span>Kembali</span>
+            </Link>
+            <div className="no-scrollbar flex flex-1 items-center gap-1.5 overflow-x-auto whitespace-nowrap">
               {ALL_THEME_PRESETS.map((p) => (
                 <Link
                   key={p}
                   to={`/preview/${p}/menu`}
-                  className="rounded px-2.5 py-1 text-[11px] font-semibold no-underline transition"
+                  className="inline-flex h-8 shrink-0 items-center rounded px-3 text-[11px] font-semibold no-underline transition"
                   style={{
                     backgroundColor: previewPreset === p ? "#FFFFFF" : "rgba(255,255,255,0.14)",
                     color: previewPreset === p ? "#0B2A57" : "#FFFFFF",
@@ -211,10 +217,6 @@ export function MenuPage({ forcedSlug, previewPreset, isCustomDomain }: MenuPage
                 </Link>
               ))}
             </div>
-            <Link to="/" className="inline-flex shrink-0 items-center gap-1 font-semibold text-amber-300 no-underline hover:underline">
-              <ArrowLeft size={12} strokeWidth={2} aria-hidden="true" />
-              <span className="hidden sm:inline">Beranda</span>
-            </Link>
           </div>
         </div>
       )}
@@ -281,8 +283,8 @@ export function MenuPage({ forcedSlug, previewPreset, isCustomDomain }: MenuPage
           borderBottomWidth: isStreet ? "2px" : "1px",
         }}
       >
-        <div className="mx-auto flex max-w-6xl flex-col gap-2.5 px-4 py-3 sm:px-6 md:flex-row md:items-center md:justify-between">
-          <div className="flex items-center gap-2 overflow-x-auto pb-0.5 whitespace-nowrap">
+        <div className="mx-auto flex max-w-6xl flex-col gap-2 px-3.5 py-2.5 sm:px-6 md:flex-row md:items-center md:justify-between md:py-3">
+          <div className="no-scrollbar flex items-center gap-1.5 overflow-x-auto whitespace-nowrap">
             <button
               type="button"
               onClick={() => setActiveCatId("all")}
@@ -386,32 +388,32 @@ export function MenuPage({ forcedSlug, previewPreset, isCustomDomain }: MenuPage
                 {/* Dotted-leader book for Banquet & Omakase */}
                 {isBanquet || activePreset === "omakase" ? (
                   <div
-                    className="border p-5 sm:p-8"
+                    className="border p-4 sm:p-8"
                     style={{
                       backgroundColor: palette.surfaceBg,
                       borderColor: palette.borderCol,
                       borderRadius: palette.radius,
                     }}
                   >
-                    <div className="grid gap-x-10 gap-y-6 md:grid-cols-2">
+                    <div className="grid gap-x-10 gap-y-5 md:grid-cols-2 md:gap-y-6">
                       {items.map((item) => {
                         const img = resolveAssetUrl(item.image_url);
                         return (
-                          <article key={item.id} className="flex gap-4">
+                          <article key={item.id} className="flex gap-3.5 sm:gap-4">
                             {img && (
                               <img
                                 src={img}
                                 alt={item.name}
-                                className="h-20 w-20 shrink-0 object-cover"
+                                className="h-16 w-16 shrink-0 object-cover sm:h-20 sm:w-20"
                                 style={{ borderRadius: palette.radius }}
                                 loading="lazy"
                               />
                             )}
                             <div className="min-w-0 flex-1">
-                              <div className="flex items-baseline gap-2">
-                                <h3 className="font-display text-xl font-bold leading-snug">{item.name}</h3>
-                                <span className="flex-1 border-b border-dotted" style={{ borderColor: palette.borderCol }} />
-                                <span className="shrink-0 font-mono text-sm font-bold" style={{ color: accentColor }}>
+                              <div className="flex flex-col gap-0.5 sm:flex-row sm:items-baseline sm:gap-2">
+                                <h3 className="font-display text-lg font-bold leading-snug sm:text-xl">{item.name}</h3>
+                                <span className="hidden flex-1 border-b border-dotted sm:block" style={{ borderColor: palette.borderCol }} />
+                                <span className="shrink-0 font-mono text-xs font-bold sm:text-sm" style={{ color: accentColor }}>
                                   {formatRupiah(item.price)}
                                 </span>
                               </div>
@@ -504,30 +506,30 @@ export function MenuPage({ forcedSlug, previewPreset, isCustomDomain }: MenuPage
                       return (
                         <article
                           key={item.id}
-                          className="flex gap-4 p-4 transition"
+                          className="flex gap-3.5 p-3.5 transition sm:gap-4 sm:p-4"
                           style={{
                             backgroundColor: palette.surfaceBg,
                             border: `${isStreet ? "2px" : "1px"} solid ${palette.borderCol}`,
                             borderRadius: palette.radius,
-                            boxShadow: isStreet ? "4px 4px 0 #181512" : undefined,
+                            boxShadow: isStreet ? "3px 3px 0 #181512" : undefined,
                           }}
                         >
                           {img && (
                             <img
                               src={img}
                               alt={item.name}
-                              className="h-24 w-24 shrink-0 object-cover"
+                              className="h-20 w-20 shrink-0 object-cover sm:h-24 sm:w-24"
                               style={{ borderRadius: palette.radius }}
                               loading="lazy"
                             />
                           )}
                           <div className="flex min-w-0 flex-1 flex-col justify-between">
                             <div>
-                              <div className="flex items-start justify-between gap-3">
-                                <h3 className={isBistro || isStreet ? "text-sm font-bold uppercase tracking-wide" : "font-display text-xl font-bold"}>
+                              <div className="flex flex-col gap-0.5 sm:flex-row sm:items-start sm:justify-between sm:gap-3">
+                                <h3 className={isBistro || isStreet ? "text-sm font-bold uppercase tracking-wide" : "font-display text-lg font-bold sm:text-xl"}>
                                   {item.name}
                                 </h3>
-                                <span className="shrink-0 font-mono text-sm font-bold" style={{ color: accentColor }}>
+                                <span className="shrink-0 font-mono text-xs font-bold sm:text-sm" style={{ color: accentColor }}>
                                   {formatRupiah(item.price)}
                                 </span>
                               </div>

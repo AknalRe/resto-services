@@ -40,7 +40,7 @@ export function OmakaseTemplate({
   };
 
   return (
-    <div className="min-h-screen overflow-x-hidden pb-20 md:pb-0" style={{ backgroundColor: "#F5F2EB", color: "#181A1F" }}>
+    <div className="min-h-screen overflow-x-clip pb-20 md:pb-0" style={{ backgroundColor: "#F5F2EB", color: "#181A1F" }}>
       {/* Serene Minimalist Zen Header (text links only, no duplicate CTA button) */}
       <header className="sticky top-0 z-30 border-b bg-[#F5F2EB]/92 backdrop-blur-md" style={{ borderColor: "rgba(24,26,31,0.1)" }}>
         <div className="mx-auto flex max-w-5xl items-center justify-between gap-3 px-4 py-4 sm:px-6">
@@ -142,36 +142,40 @@ export function OmakaseTemplate({
           </p>
           <h2 className="mt-2 font-display text-3xl font-semibold sm:text-4xl">Pilihan Musiman &amp; Terlaris</h2>
 
-          <div className="mt-10 divide-y border-y" style={{ borderColor: "rgba(24,26,31,0.12)" }}>
+          <div className="mt-8 divide-y border-y sm:mt-10" style={{ borderColor: "rgba(24,26,31,0.12)" }}>
             {bestSellers.slice(0, 4).map((dish, idx) => (
-              <article key={dish.id} className="grid gap-5 py-6 sm:grid-cols-12 sm:items-center">
-                <div className="font-mono text-xs text-[#7A7D85] sm:col-span-1">
+              <article key={dish.id} className="flex flex-col gap-3 py-5 sm:grid sm:grid-cols-12 sm:items-center sm:gap-5 sm:py-6">
+                <div className="hidden font-mono text-xs text-[#7A7D85] sm:col-span-1 sm:block">
                   0{idx + 1}
                 </div>
-                <div className="sm:col-span-3">
+                <div className="flex items-start gap-3.5 sm:contents">
                   {dish.image_url && (
-                    <div className="aspect-[4/3] overflow-hidden bg-[#E8E3D8]">
+                    <div className="h-20 w-24 shrink-0 overflow-hidden bg-[#E8E3D8] sm:col-span-3 sm:h-auto sm:w-full sm:aspect-[4/3]">
                       <img src={resolveAssetUrl(dish.image_url)} alt={dish.name} className="h-full w-full object-cover" loading="lazy" />
                     </div>
                   )}
-                </div>
-                <div className="sm:col-span-6">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <h3 className="font-display text-2xl font-semibold">{dish.name}</h3>
-                    {dish.badge && (
-                      <span
-                        className="border px-2 py-0.5 font-mono text-[10px] uppercase tracking-wider"
-                        style={{ borderColor: accentColor, color: accentColor }}
-                      >
-                        {dish.badge}
-                      </span>
+                  <div className="min-w-0 flex-1 sm:col-span-6">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="font-mono text-[11px] text-[#7A7D85] sm:hidden">0{idx + 1}</span>
+                      <h3 className="font-display text-xl font-semibold sm:text-2xl">{dish.name}</h3>
+                      {dish.badge && (
+                        <span
+                          className="border px-2 py-0.5 font-mono text-[10px] uppercase tracking-wider"
+                          style={{ borderColor: accentColor, color: accentColor }}
+                        >
+                          {dish.badge}
+                        </span>
+                      )}
+                    </div>
+                    {dish.description && (
+                      <p className="mt-1 line-clamp-2 text-xs leading-relaxed text-[#575A63] sm:mt-1.5">{dish.description}</p>
                     )}
+                    <div className="mt-2 font-mono text-xs font-semibold sm:hidden" style={{ color: accentColor }}>
+                      {formatRupiah(dish.price)}
+                    </div>
                   </div>
-                  {dish.description && (
-                    <p className="mt-1.5 text-xs leading-relaxed text-[#575A63]">{dish.description}</p>
-                  )}
                 </div>
-                <div className="font-mono text-sm font-semibold sm:col-span-2 sm:text-right">
+                <div className="hidden font-mono text-sm font-semibold sm:col-span-2 sm:block sm:text-right">
                   {formatRupiah(dish.price)}
                 </div>
               </article>

@@ -46,7 +46,7 @@ export function CafeTemplate({
   };
 
   return (
-    <div className="min-h-screen overflow-x-hidden pb-20 md:pb-0" style={{ backgroundColor: "#F8F4EC", color: "#2E2219" }}>
+    <div className="min-h-screen overflow-x-clip pb-20 md:pb-0" style={{ backgroundColor: "#F8F4EC", color: "#2E2219" }}>
       {/* Floating Pill Navbar */}
       <div className="sticky top-2.5 z-30 mx-auto max-w-5xl px-3 sm:top-3 sm:px-4">
         <header

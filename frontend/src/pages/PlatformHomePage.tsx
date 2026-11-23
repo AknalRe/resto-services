@@ -109,54 +109,48 @@ export function PlatformHomePage({ user }: PlatformHomePageProps) {
           />
           <div className="absolute inset-0 bg-gradient-to-r from-stone-950/95 via-stone-950/80 to-stone-950/60" />
 
-          <div className="relative z-10 mx-auto grid max-w-6xl grid-cols-1 gap-10 px-4 py-16 sm:px-6 lg:grid-cols-12 lg:items-center lg:py-20">
+          <div className="relative z-10 mx-auto grid max-w-6xl grid-cols-1 gap-7 px-4 py-10 sm:px-6 sm:py-16 lg:grid-cols-12 lg:items-center lg:gap-10 lg:py-20">
             <div className="lg:col-span-7">
-              <p className="font-mono text-xs font-semibold uppercase tracking-[0.2em] text-amber-300">
+              <p className="font-mono text-[11px] font-semibold uppercase tracking-[0.18em] text-amber-300 sm:text-xs">
                 Website Kuliner, Buku Menu &amp; Reservasi Meja
               </p>
-              <h1 className="font-display mt-3 text-4xl font-bold leading-tight text-white sm:text-6xl">
+              <h1 className="font-display mt-2.5 text-3xl font-bold leading-[1.1] text-white sm:mt-3 sm:text-5xl lg:text-6xl">
                 Tampilkan Menu dan Suasana Restoran Anda Lebih Menggugah Selera
               </h1>
-              <p className="mt-4 max-w-2xl text-sm leading-relaxed text-stone-200 sm:text-base">
+              <p className="mt-3.5 max-w-2xl text-sm leading-relaxed text-stone-200 sm:mt-4 sm:text-base">
                 Khusus untuk pemilik restoran, kafe, dan kedai makan. Tamu dari Instagram atau Google Maps langsung melihat
                 foto hidangan, harga terbaru, promo aktif, ruang privat, dan memesan meja lewat WhatsApp.
               </p>
 
-              <div className="mt-8 flex flex-wrap items-center gap-3">
+              <div className="mt-6 sm:mt-8">
                 <a
                   href="#contoh-tema"
-                  className="inline-flex h-12 items-center gap-2 rounded-lg px-6 text-sm font-semibold text-white no-underline transition-opacity hover:opacity-90"
+                  className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-lg px-6 text-sm font-semibold text-white no-underline transition-opacity hover:opacity-90 sm:w-auto"
                   style={{ backgroundColor: "#8B1E24" }}
                 >
-                  Coba Contoh Tema F&amp;B
+                  Coba 6 Contoh Tema F&amp;B
                   <ArrowRight size={15} strokeWidth={2} aria-hidden="true" />
                 </a>
-                <Link
-                  to={user ? (user.role === "superadmin" ? "/superadmin/restaurants" : "/admin") : "/login"}
-                  className="inline-flex h-12 items-center gap-2 rounded-lg border border-white/35 bg-white/10 px-6 text-sm font-semibold text-white no-underline backdrop-blur-sm transition-colors hover:bg-white/20"
-                >
-                  Masuk Panel Pengelola
-                </Link>
               </div>
             </div>
 
-            <div className="hidden lg:col-span-5 lg:grid lg:grid-cols-2 lg:gap-3">
+            <div className="grid grid-cols-2 gap-3 lg:col-span-5">
               <img
                 src={withBasePath("/demo/dish-ayam.jpg")}
                 alt="Hidangan andalan ayam goreng mentega"
-                className="h-52 w-full rounded-xl border border-white/15 object-cover"
+                className="h-36 w-full rounded-xl border border-white/15 object-cover sm:h-48 lg:h-52"
               />
               <img
                 src={withBasePath("/demo/dish-gurame.jpg")}
                 alt="Hidangan gurame asam manis"
-                className="mt-6 h-52 w-full rounded-xl border border-white/15 object-cover"
+                className="h-36 w-full rounded-xl border border-white/15 object-cover sm:h-48 lg:mt-6 lg:h-52"
               />
             </div>
           </div>
         </section>
 
-        {/* Live Template Showcase: 3 F&B styles directly tryable */}
-        <section id="contoh-tema" className="mx-auto max-w-6xl px-4 py-14 sm:px-6 sm:py-16">
+        {/* Live Template Showcase: 6 F&B styles directly tryable */}
+        <section id="contoh-tema" className="mx-auto max-w-6xl px-4 py-10 sm:px-6 sm:py-16">
           <div className="max-w-2xl">
             <p className="font-mono text-xs font-semibold uppercase tracking-widest" style={{ color: "#8B1E24" }}>
               Contoh Langsung Berdasarkan Gaya F&amp;B
@@ -165,12 +159,12 @@ export function PlatformHomePage({ user }: PlatformHomePageProps) {
               Pilih Gaya Tampilan yang Paling Cocok untuk Konsep Dapur Anda
             </h2>
             <p className="mt-2 text-sm leading-relaxed" style={{ color: "var(--ink-body)" }}>
-              Klik salah satu tema di bawah untuk mencoba tampilan website secara penuh. Setelah aktif, tema ditentukan
+              Klik salah satu dari 6 tema di bawah untuk mencoba tampilan website secara penuh. Setelah aktif, tema ditentukan
               sepenuhnya dari Panel Admin restoran.
             </p>
           </div>
 
-          <div className="mt-8 grid grid-cols-1 gap-6 lg:grid-cols-3">
+          <div className="mt-7 grid grid-cols-1 gap-5 sm:mt-8 sm:grid-cols-2 sm:gap-6 lg:grid-cols-3">
             {TEMPLATE_SHOWCASE.map((tpl) => (
               <article
                 key={tpl.preset}

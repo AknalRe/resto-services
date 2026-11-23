@@ -41,7 +41,7 @@ export function StreetTemplate({
   };
 
   return (
-    <div className="min-h-screen overflow-x-hidden pb-20 md:pb-0" style={{ backgroundColor: "#FFF8EB", color: "#181512" }}>
+    <div className="min-h-screen overflow-x-clip pb-20 md:pb-0" style={{ backgroundColor: "#FFF8EB", color: "#181512" }}>
       {/* Bold Ink-Bordered Poster Header (text links only, zero duplicate CTA button) */}
       <header className="sticky top-0 z-30 border-b-2 border-[#181512] bg-[#FFF8EB]/95 backdrop-blur-md">
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-3 sm:px-6">
@@ -89,8 +89,8 @@ export function StreetTemplate({
       <section id="beranda" className="mx-auto max-w-6xl px-4 py-10 sm:px-6 lg:py-14">
         <div className="grid items-stretch gap-6 lg:grid-cols-12">
           <div
-            className="flex flex-col justify-between rounded-2xl border-2 border-[#181512] p-6 sm:p-8 lg:col-span-5"
-            style={{ backgroundColor: "#F6C945", boxShadow: "6px 6px 0 #181512" }}
+            className="flex flex-col justify-between rounded-2xl border-2 border-[#181512] p-5 sm:p-8 lg:col-span-5"
+            style={{ backgroundColor: "#F6C945", boxShadow: "4px 4px 0 #181512" }}
           >
             <div>
               {primaryBranch && (
@@ -128,7 +128,7 @@ export function StreetTemplate({
 
           <div
             className="overflow-hidden rounded-2xl border-2 border-[#181512] bg-white lg:col-span-7"
-            style={{ boxShadow: "6px 6px 0 #181512" }}
+            style={{ boxShadow: "4px 4px 0 #181512" }}
           >
             <div className="aspect-[16/10] h-full w-full">
               {heroImageUrl && <img src={heroImageUrl} alt={displayName} className="h-full w-full object-cover" />}

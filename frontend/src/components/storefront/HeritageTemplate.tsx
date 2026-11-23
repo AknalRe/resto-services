@@ -61,7 +61,7 @@ export function HeritageTemplate({
   };
 
   return (
-    <div className="min-h-screen overflow-x-hidden pb-20 md:pb-0" style={{ backgroundColor: "#FAF6EE", color: "#1F1612" }}>
+    <div className="min-h-screen overflow-x-clip pb-20 md:pb-0" style={{ backgroundColor: "#FAF6EE", color: "#1F1612" }}>
       {/* Classic Burgundy Top Hospitality Strip */}
       {primaryBranch && (
         <div className="border-b px-4 py-2 text-[11px] text-amber-100" style={{ backgroundColor: "#260D10", borderColor: "rgba(212,175,55,0.28)" }}>
@@ -152,7 +152,7 @@ export function HeritageTemplate({
       </header>
 
       {/* Full-Bleed Grand Banquet Hero with Centered Gold Crest */}
-      <section id="beranda" className="relative flex min-h-[76vh] items-center justify-center overflow-hidden px-4 py-16 text-center sm:min-h-[82vh] sm:py-24">
+      <section id="beranda" className="relative flex min-h-[62vh] items-center justify-center overflow-hidden px-4 py-12 text-center sm:min-h-[80vh] sm:py-24">
         {heroImageUrl ? (
           <img src={heroImageUrl} alt={displayName} className="absolute inset-0 h-full w-full object-cover" />
         ) : (
