@@ -50,9 +50,22 @@ export async function buildApp(customDbUrl?: string): Promise<FastifyInstance> {
     });
 
     app.setNotFoundHandler((request, reply) => {
-      if (request.url.startsWith("/api/")) {
+      const urlPath = request.url.split("?")[0];
+      if (urlPath.startsWith("/api/")) {
         return reply.code(404).send({ error: "Endpoint API tidak ditemukan." });
       }
+
+      // Support relative ./assets/*, ./demo/*, and ./logo.svg when SPA is opened on nested routes
+      // (e.g. /preview/banquet or /r/slug/menu under both root domain and /app/reneo-resto proxy)
+      const nestedAsset = urlPath.match(/\/((?:assets|demo)\/[^/]+|logo\.svg)$/);
+      if (nestedAsset) {
+        const relPath = nestedAsset[1];
+        const candidate = path.resolve(config.frontendDistDir, relPath);
+        if (candidate.startsWith(path.resolve(config.frontendDistDir)) && fs.existsSync(candidate) && fs.statSync(candidate).isFile()) {
+          return reply.sendFile(relPath);
+        }
+      }
+
       const indexFile = path.join(config.frontendDistDir, "index.html");
       if (fs.existsSync(indexFile)) {
         return reply.type("text/html").send(fs.readFileSync(indexFile));

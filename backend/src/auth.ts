@@ -92,6 +92,8 @@ export function clearSessionCookie(request: FastifyRequest, reply: FastifyReply)
     httpOnly: true,
     sameSite: "lax",
     secure: isHttpsRequest(request),
+    maxAge: 0,
+    expires: new Date(0),
   });
 }
 

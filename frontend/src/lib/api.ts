@@ -13,13 +13,17 @@ import type {
 import { withBasePath } from "./basePath";
 
 async function request<T>(url: string, init?: RequestInit): Promise<T> {
+  const headers: Record<string, string> = {};
+  if (init?.body !== undefined && !(init.body instanceof FormData)) {
+    headers["Content-Type"] = "application/json";
+  }
   const res = await fetch(withBasePath(url), {
     credentials: "include",
+    ...init,
     headers: {
-      "Content-Type": "application/json",
+      ...headers,
       ...(init?.headers || {}),
     },
-    ...init,
   });
 
   if (!res.ok) {
@@ -43,7 +47,7 @@ export const api = {
       method: "POST",
       body: JSON.stringify({ email, password }),
     }),
-  logout: () => request<{ ok: boolean }>("/api/auth/logout", { method: "POST" }),
+  logout: () => request<{ ok: boolean }>("/api/auth/logout", { method: "POST", body: "{}" }),
 
   // Public
   resolveHost: () =>
