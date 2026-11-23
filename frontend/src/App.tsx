@@ -5,6 +5,7 @@ import { getAppBasePath } from "./lib/basePath";
 import type { AuthUser, Tenant, ThemePreset } from "./types";
 import { PlatformHomePage } from "./pages/PlatformHomePage";
 import { StorefrontPage } from "./pages/StorefrontPage";
+import { MenuPage } from "./pages/MenuPage";
 import { LoginPage } from "./pages/LoginPage";
 import { TenantAdminPage } from "./pages/TenantAdminPage";
 import { SuperadminPage } from "./pages/SuperadminPage";
@@ -14,6 +15,13 @@ function TemplatePreviewRoute({ defaultSlug }: { defaultSlug: string }) {
   const validPreset: ThemePreset =
     preset === "bistro" || preset === "cafe" || preset === "heritage" ? preset : "heritage";
   return <StorefrontPage forcedSlug={defaultSlug} previewPreset={validPreset} />;
+}
+
+function TemplatePreviewMenuRoute({ defaultSlug }: { defaultSlug: string }) {
+  const { preset } = useParams<{ preset: string }>();
+  const validPreset: ThemePreset =
+    preset === "bistro" || preset === "cafe" || preset === "heritage" ? preset : "heritage";
+  return <MenuPage forcedSlug={defaultSlug} previewPreset={validPreset} />;
 }
 
 export function App() {
@@ -67,14 +75,26 @@ export function App() {
           path="/"
           element={
             hostMode === "tenant" && hostSlug ? (
-              <StorefrontPage forcedSlug={hostSlug} />
+              <StorefrontPage forcedSlug={hostSlug} isCustomDomain />
             ) : (
               <PlatformHomePage restaurants={restaurants} user={user} />
             )
           }
         />
+        <Route
+          path="/menu"
+          element={
+            hostMode === "tenant" && hostSlug ? (
+              <MenuPage forcedSlug={hostSlug} isCustomDomain />
+            ) : (
+              <Navigate to="/" replace />
+            )
+          }
+        />
         <Route path="/r/:slug" element={<StorefrontPage />} />
+        <Route path="/r/:slug/menu" element={<MenuPage />} />
         <Route path="/preview/:preset" element={<TemplatePreviewRoute defaultSlug={demoSlug} />} />
+        <Route path="/preview/:preset/menu" element={<TemplatePreviewMenuRoute defaultSlug={demoSlug} />} />
         <Route
           path="/login"
           element={

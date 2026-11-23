@@ -26,15 +26,18 @@
 }
 
 [data-preset="bistro"] {
-  --bg: #f3f4f6;
-  --surface: #ffffff;
-  --surface-muted: #e5e7eb;
-  --border: rgba(15, 23, 42, 0.12);
-  --border-strong: rgba(15, 23, 42, 0.25);
-  --ink: #0f172a;
-  --ink-body: #334155;
-  --ink-muted: #64748b;
-  --resto-gold: #d97706;
+  color-scheme: dark;
+  --bg: #0b0c0e;
+  --surface: #14161a;
+  --surface-muted: #1b1e24;
+  --border: rgba(255, 255, 255, 0.11);
+  --border-strong: rgba(255, 255, 255, 0.24);
+  --ink: #f8fafc;
+  --ink-body: #cbd5e1;
+  --ink-muted: #94a3b8;
+  --resto-gold: #d97736;
+  --scrollbar-thumb: rgba(148, 163, 184, 0.32);
+  --scrollbar-thumb-hover: rgba(148, 163, 184, 0.55);
 }
 
 [data-preset="cafe"] {
