@@ -46,7 +46,7 @@ export function registerTenantAdminRoutes(app: FastifyInstance, pool: Pool): voi
       name?: string;
       tagline?: string;
       story?: string;
-      theme_preset?: "heritage" | "bistro" | "cafe";
+      theme_preset?: "banquet" | "heritage" | "bistro" | "cafe" | "omakase" | "coastal" | "street";
       primary_color?: string;
       logo_url?: string;
       hero_image_url?: string;

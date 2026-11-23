@@ -12,6 +12,7 @@ import {
   X,
 } from "lucide-react";
 import { formatRupiah, resolveAssetUrl } from "../../lib/api";
+import { useScrolledPast } from "../../hooks/useScrolledPast";
 import { ReservationForm } from "../ReservationForm";
 import type { TemplateProps } from "./HeritageTemplate";
 
@@ -30,6 +31,7 @@ export function BistroTemplate({
 }: TemplateProps) {
   const [selectedEvent, setSelectedEvent] = useState("Dinner / Private Table");
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
+  const showMobileBar = useScrolledPast(420);
   const { tenant, branches, promos, event_packages, menu_items } = data;
   const primaryBranch = branches[0];
   const logoSrc = resolveAssetUrl(tenant.logo_url);
@@ -66,24 +68,14 @@ export function BistroTemplate({
             <a href="#reservasi" className="no-underline transition hover:text-white">Reservasi</a>
           </nav>
 
-          <div className="flex shrink-0 items-center gap-2">
-            <Link
-              to={menuPath}
-              className="hidden h-9 items-center gap-1.5 px-4 font-mono text-[11px] font-bold uppercase tracking-[0.14em] text-white no-underline transition hover:opacity-90 md:inline-flex"
-              style={{ backgroundColor: accentColor }}
-            >
-              <BookOpen size={13} strokeWidth={1.75} aria-hidden="true" />
-              Buku Menu
-            </Link>
-            <button
-              type="button"
-              onClick={() => setMobileNavOpen((v) => !v)}
-              aria-label="Menu navigasi"
-              className="inline-flex h-10 w-10 items-center justify-center border border-white/20 text-white md:hidden"
-            >
-              {mobileNavOpen ? <X size={18} strokeWidth={1.75} /> : <Menu size={18} strokeWidth={1.75} />}
-            </button>
-          </div>
+          <button
+            type="button"
+            onClick={() => setMobileNavOpen((v) => !v)}
+            aria-label="Menu navigasi"
+            className="inline-flex h-10 w-10 items-center justify-center border border-white/20 text-white md:hidden"
+          >
+            {mobileNavOpen ? <X size={18} strokeWidth={1.75} /> : <Menu size={18} strokeWidth={1.75} />}
+          </button>
         </div>
 
         {mobileNavOpen && (
@@ -182,23 +174,13 @@ export function BistroTemplate({
       {/* Numbered Signature Best-Sellers (Mobile stacked -> Desktop split) */}
       <section id="terlaris" className="border-t border-white/10 bg-[#101216] py-14 sm:py-20">
         <div className="mx-auto max-w-6xl px-4 sm:px-6">
-          <div className="flex flex-col gap-3 border-b border-white/10 pb-6 sm:flex-row sm:items-end sm:justify-between">
-            <div>
-              <p className="font-mono text-[11px] uppercase tracking-[0.22em]" style={{ color: accentColor }}>
-                01 / CHEF&apos;S SELECTION
-              </p>
-              <h2 className="mt-2 text-2xl font-bold uppercase tracking-[0.04em] text-white sm:text-4xl">
-                Menu Terlaris Malam Ini
-              </h2>
-            </div>
-            <Link
-              to={menuPath}
-              className="inline-flex items-center gap-2 font-mono text-xs font-semibold uppercase tracking-[0.14em] no-underline hover:underline"
-              style={{ color: accentColor }}
-            >
-              Buka Semua {menu_items.length} Menu
-              <ArrowUpRight size={14} strokeWidth={2} aria-hidden="true" />
-            </Link>
+          <div className="border-b border-white/10 pb-6">
+            <p className="font-mono text-[11px] uppercase tracking-[0.22em]" style={{ color: accentColor }}>
+              01 / CHEF&apos;S SELECTION
+            </p>
+            <h2 className="mt-2 text-2xl font-bold uppercase tracking-[0.04em] text-white sm:text-4xl">
+              Menu Terlaris Malam Ini
+            </h2>
           </div>
 
           <div className="mt-7 grid gap-4 sm:mt-8 sm:gap-5 md:grid-cols-2">
@@ -256,7 +238,7 @@ export function BistroTemplate({
               className="mt-4 inline-flex h-11 w-full shrink-0 items-center justify-center gap-2 px-5 font-mono text-xs font-bold uppercase tracking-[0.14em] text-white no-underline sm:mt-0 sm:w-auto"
               style={{ backgroundColor: accentColor }}
             >
-              Buka Buku Menu
+              Buka Buku Menu ({menu_items.length})
               <ArrowUpRight size={14} strokeWidth={2} />
             </Link>
           </div>
@@ -347,7 +329,8 @@ export function BistroTemplate({
         {displayName} · BISTRO &amp; GRILL
       </footer>
 
-      {/* Mobile Sticky Bottom Action Bar */}
+      {/* Mobile Sticky Bottom Action Bar (only after scrolling past hero) */}
+      {showMobileBar && (
       <div className="fixed inset-x-0 bottom-0 z-40 grid grid-cols-2 gap-2 border-t border-white/15 bg-[#0B0C0E]/95 p-2.5 backdrop-blur-md md:hidden">
         <Link
           to={menuPath}
@@ -365,6 +348,7 @@ export function BistroTemplate({
           Book Table
         </a>
       </div>
+      )}
     </div>
   );
 }

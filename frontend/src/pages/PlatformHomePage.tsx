@@ -10,53 +10,23 @@ import {
   Settings2,
 } from "lucide-react";
 import { withBasePath } from "../lib/basePath";
-import type { AuthUser, Tenant, ThemePreset } from "../types";
+import { ALL_THEME_PRESETS, PREVIEW_META } from "../lib/storefrontTheme";
+import type { AuthUser, Tenant } from "../types";
 
 interface PlatformHomePageProps {
   restaurants: Tenant[];
   user: AuthUser | null;
 }
 
-const TEMPLATE_SHOWCASE: ReadonlyArray<{
-  preset: ThemePreset;
-  name: string;
-  vibe: string;
-  summary: string;
-  image: string;
-  accent: string;
-  bestFor: string;
-}> = [
-  {
-    preset: "heritage",
-    name: "Restoran Keluarga & Banquet",
-    vibe: "Hangat, Elegan & Klasik",
-    summary:
-      "Banner suasana ruang makan penuh, daftar hidangan andalan bergambar besar, tata letak buku menu klasik, dan etalase ruang privat VIP.",
-    image: "/demo/hero-heritage.jpg",
-    accent: "#8B1E24",
-    bestFor: "Restoran keluarga, Chinese food, rumah makan legendaris, jamuan & sangjit",
-  },
-  {
-    preset: "bistro",
-    name: "Modern Bistro & Grill",
-    vibe: "Gelap, Kontras & Editorial",
-    summary:
-      "Nuansa charcoal dan tembaga yang menonjolkan warna makanan, papan menu modern berjarak lega, dan formulir reservasi meja cepat.",
-    image: "/demo/hero-bistro.jpg",
-    accent: "#D97736",
-    bestFor: "Steakhouse, bistro modern, bar & grill, restoran fine casual",
-  },
-  {
-    preset: "cafe",
-    name: "Artisan Cafe & Kitchen",
-    vibe: "Krem Hangat & Santai",
-    summary:
-      "Tampilan cerah bernuansa kopi dan roti hangat, tab kategori cepat di layar ponsel, serta kartu menu bergambar yang ringan digulir.",
-    image: "/demo/hero-cafe.jpg",
-    accent: "#2F483E",
-    bestFor: "Kedai kopi, bakery, brunch cafe, kedai makan harian",
-  },
-];
+const TEMPLATE_SHOWCASE = ALL_THEME_PRESETS.map((preset) => ({
+  preset,
+  name: PREVIEW_META[preset].label,
+  vibe: PREVIEW_META[preset].vibe,
+  summary: PREVIEW_META[preset].summary,
+  image: PREVIEW_META[preset].sampleHero,
+  accent: PREVIEW_META[preset].color,
+  bestFor: PREVIEW_META[preset].bestFor,
+}));
 
 const CAPABILITIES = [
   {
@@ -133,7 +103,7 @@ export function PlatformHomePage({ user }: PlatformHomePageProps) {
         {/* Warm culinary Hero */}
         <section className="relative overflow-hidden bg-stone-950 text-white">
           <img
-            src={withBasePath("/demo/hero-heritage.jpg")}
+            src={withBasePath("/demo/hero-banquet.jpg")}
             alt="Suasana ruang makan restoran"
             className="absolute inset-0 h-full w-full object-cover opacity-35"
           />

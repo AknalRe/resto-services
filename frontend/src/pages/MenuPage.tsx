@@ -1,14 +1,13 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useParams } from "react-router-dom";
-import {
-  ArrowLeft,
-  Flame,
-  MessageCircle,
-  Search,
-  UtensilsCrossed,
-} from "lucide-react";
+import { ArrowLeft, Flame, MessageCircle, Search, UtensilsCrossed } from "lucide-react";
 import { api, formatRupiah, resolveAssetUrl } from "../lib/api";
-import { getStorefrontPaths, PREVIEW_META } from "../lib/storefrontTheme";
+import {
+  ALL_THEME_PRESETS,
+  getStorefrontPaths,
+  normalizeThemePreset,
+  PREVIEW_META,
+} from "../lib/storefrontTheme";
 import type { StorefrontPayload, ThemePreset } from "../types";
 
 interface MenuPageProps {
@@ -16,6 +15,81 @@ interface MenuPageProps {
   previewPreset?: ThemePreset;
   isCustomDomain?: boolean;
 }
+
+const THEME_PALETTE: Record<
+  ThemePreset,
+  {
+    pageBg: string;
+    surfaceBg: string;
+    barBg: string;
+    textMain: string;
+    textBody: string;
+    textMuted: string;
+    borderCol: string;
+    radius: string;
+  }
+> = {
+  banquet: {
+    pageBg: "#FAF6EE",
+    surfaceBg: "#FFFFFF",
+    barBg: "rgba(250,246,238,0.95)",
+    textMain: "#1F1612",
+    textBody: "#4E413A",
+    textMuted: "#7C6E65",
+    borderCol: "rgba(184,134,11,0.28)",
+    radius: "6px",
+  },
+  bistro: {
+    pageBg: "#0B0C0E",
+    surfaceBg: "#14161A",
+    barBg: "rgba(11,12,14,0.94)",
+    textMain: "#F8FAFC",
+    textBody: "#CBD5E1",
+    textMuted: "#94A3B8",
+    borderCol: "rgba(255,255,255,0.12)",
+    radius: "2px",
+  },
+  cafe: {
+    pageBg: "#F8F4EC",
+    surfaceBg: "#FFFFFF",
+    barBg: "rgba(248,244,236,0.95)",
+    textMain: "#2E2219",
+    textBody: "#5C4B3E",
+    textMuted: "#8A7766",
+    borderCol: "rgba(46,34,25,0.12)",
+    radius: "9999px",
+  },
+  omakase: {
+    pageBg: "#F5F2EB",
+    surfaceBg: "#FFFFFF",
+    barBg: "rgba(245,242,235,0.95)",
+    textMain: "#181A1F",
+    textBody: "#52555D",
+    textMuted: "#7A7D85",
+    borderCol: "rgba(24,26,31,0.12)",
+    radius: "0px",
+  },
+  coastal: {
+    pageBg: "#F8FBFD",
+    surfaceBg: "#FFFFFF",
+    barBg: "rgba(248,251,253,0.95)",
+    textMain: "#0E2A3F",
+    textBody: "#4E6B80",
+    textMuted: "#6B8699",
+    borderCol: "rgba(15,76,117,0.14)",
+    radius: "12px",
+  },
+  street: {
+    pageBg: "#FFF8EB",
+    surfaceBg: "#FFFFFF",
+    barBg: "rgba(255,248,235,0.96)",
+    textMain: "#181512",
+    textBody: "#4A4036",
+    textMuted: "#6E6256",
+    borderCol: "#181512",
+    radius: "8px",
+  },
+};
 
 export function MenuPage({ forcedSlug, previewPreset, isCustomDomain }: MenuPageProps) {
   const params = useParams<{ slug: string }>();
@@ -40,7 +114,7 @@ export function MenuPage({ forcedSlug, previewPreset, isCustomDomain }: MenuPage
       .finally(() => setLoading(false));
   }, [slug]);
 
-  const activePreset: ThemePreset = previewPreset || data?.tenant.theme_preset || "heritage";
+  const activePreset: ThemePreset = previewPreset || normalizeThemePreset(data?.tenant.theme_preset);
   const accentColor = previewPreset ? PREVIEW_META[previewPreset].color : data?.tenant.primary_color || "#8B1E24";
 
   useEffect(() => {
@@ -109,32 +183,27 @@ export function MenuPage({ forcedSlug, previewPreset, isCustomDomain }: MenuPage
       )}`
     : null;
 
-  const isHeritage = activePreset === "heritage";
+  const palette = THEME_PALETTE[activePreset];
   const isBistro = activePreset === "bistro";
   const isCafe = activePreset === "cafe";
-
-  const pageBg = isBistro ? "#0B0C0E" : isCafe ? "#F8F4EC" : "#FAF6EE";
-  const surfaceBg = isBistro ? "#14161A" : "#FFFFFF";
-  const textMain = isBistro ? "#F8FAFC" : isCafe ? "#2E2219" : "#1F1612";
-  const textBody = isBistro ? "#CBD5E1" : isCafe ? "#5C4B3E" : "#4E413A";
-  const textMuted = isBistro ? "#94A3B8" : isCafe ? "#8A7766" : "#7C6E65";
-  const borderCol = isBistro ? "rgba(255,255,255,0.11)" : "rgba(31,22,18,0.12)";
+  const isStreet = activePreset === "street";
+  const isBanquet = activePreset === "banquet";
 
   return (
-    <div className="min-h-screen" style={{ backgroundColor: pageBg, color: textMain }}>
+    <div className="min-h-screen" style={{ backgroundColor: palette.pageBg, color: palette.textMain }}>
       {/* Preview switcher bar ONLY in /preview/:preset/menu */}
       {previewPreset && (
-        <div className="border-b px-4 py-2 text-xs text-white" style={{ backgroundColor: "#0B2A57", borderColor: "rgba(255,255,255,0.15)" }}>
-          <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-2">
-            <div className="flex flex-wrap items-center gap-2">
-              <span className="opacity-80">Pratinjau Buku Menu:</span>
-              {(["heritage", "bistro", "cafe"] as ThemePreset[]).map((p) => (
+        <div className="border-b px-3 py-2 text-xs text-white sm:px-4" style={{ backgroundColor: "#0B2A57", borderColor: "rgba(255,255,255,0.15)" }}>
+          <div className="mx-auto flex max-w-6xl items-center justify-between gap-2 overflow-x-auto whitespace-nowrap">
+            <div className="flex items-center gap-1.5">
+              <span className="hidden opacity-80 sm:inline">Tema Menu:</span>
+              {ALL_THEME_PRESETS.map((p) => (
                 <Link
                   key={p}
                   to={`/preview/${p}/menu`}
                   className="rounded px-2.5 py-1 text-[11px] font-semibold no-underline transition"
                   style={{
-                    backgroundColor: previewPreset === p ? "#FFFFFF" : "rgba(255,255,255,0.12)",
+                    backgroundColor: previewPreset === p ? "#FFFFFF" : "rgba(255,255,255,0.14)",
                     color: previewPreset === p ? "#0B2A57" : "#FFFFFF",
                   }}
                 >
@@ -142,111 +211,87 @@ export function MenuPage({ forcedSlug, previewPreset, isCustomDomain }: MenuPage
                 </Link>
               ))}
             </div>
-            <Link to="/" className="inline-flex items-center gap-1 font-semibold text-amber-300 no-underline hover:underline">
+            <Link to="/" className="inline-flex shrink-0 items-center gap-1 font-semibold text-amber-300 no-underline hover:underline">
               <ArrowLeft size={12} strokeWidth={2} aria-hidden="true" />
-              Beranda Reneo Resto
+              <span className="hidden sm:inline">Beranda</span>
             </Link>
           </div>
         </div>
       )}
 
-      {/* Top Sticky Menu Bar */}
+      {/* Top Sticky Menu Header */}
       <header
         className="sticky top-0 z-30 border-b backdrop-blur-md"
         style={{
-          backgroundColor: isBistro ? "rgba(11,12,14,0.92)" : isCafe ? "rgba(248,244,236,0.94)" : "rgba(250,246,238,0.95)",
-          borderColor: borderCol,
+          backgroundColor: palette.barBg,
+          borderColor: palette.borderCol,
+          borderBottomWidth: isStreet ? "2px" : "1px",
         }}
       >
-        <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-3.5 sm:px-6">
+        <div className="mx-auto flex h-14 max-w-6xl items-center justify-between gap-3 px-4 sm:px-6">
           <Link
             to={homePath}
-            className="inline-flex items-center gap-2 text-xs font-semibold no-underline transition hover:opacity-80"
-            style={{ color: textMain }}
+            className="inline-flex min-w-0 items-center gap-2 text-xs font-semibold no-underline transition hover:opacity-80"
+            style={{ color: palette.textMain }}
           >
-            <ArrowLeft size={15} strokeWidth={1.75} aria-hidden="true" />
-            <span>{displayName}</span>
+            <ArrowLeft size={15} strokeWidth={1.75} className="shrink-0" aria-hidden="true" />
+            <span className="truncate">{displayName}</span>
           </Link>
 
-          <div className="flex items-center gap-2">
-            {waHref && (
-              <a
-                href={waHref}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex h-9 items-center gap-1.5 px-3.5 text-xs font-semibold text-white no-underline"
-                style={{
-                  backgroundColor: accentColor,
-                  borderRadius: isCafe ? "9999px" : isBistro ? "2px" : "6px",
-                }}
-              >
-                <MessageCircle size={14} strokeWidth={1.75} aria-hidden="true" />
-                Pesan / Reservasi
-              </a>
-            )}
-          </div>
+          {waHref && (
+            <a
+              href={waHref}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex h-9 shrink-0 items-center gap-1.5 px-3.5 text-xs font-semibold text-white no-underline"
+              style={{ backgroundColor: accentColor, borderRadius: palette.radius }}
+            >
+              <MessageCircle size={14} strokeWidth={1.75} aria-hidden="true" />
+              <span className="hidden sm:inline">Pesan / Reservasi</span>
+              <span className="sm:hidden">WhatsApp</span>
+            </a>
+          )}
         </div>
       </header>
 
-      {/* Menu Book Header styled per theme */}
-      <section className="mx-auto max-w-6xl px-4 pb-6 pt-10 sm:px-6 sm:pt-12">
-        {isHeritage && (
-          <div className="mx-auto max-w-2xl text-center">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.26em]" style={{ color: "#B8860B" }}>
+      {/* Menu Book Intro */}
+      <section className="mx-auto max-w-6xl px-4 pb-4 pt-8 sm:px-6 sm:pt-10">
+        <div className={isBanquet ? "mx-auto max-w-2xl text-center" : "flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between"}>
+          <div>
+            <p className="font-mono text-[11px] font-semibold uppercase tracking-[0.2em]" style={{ color: accentColor }}>
               Daftar Hidangan Lengkap
             </p>
-            <h1 className="mt-2 font-display text-4xl font-bold sm:text-5xl">Buku Menu {displayName}</h1>
-            <div className="mx-auto mt-4 h-px w-24" style={{ backgroundColor: "#B8860B" }} />
-            <p className="mt-3 text-sm" style={{ color: textBody }}>
-              Seluruh sajian dimasak segar per pesanan. Harga belum termasuk pajak layanan jika berlaku.
-            </p>
+            <h1 className={isBistro || isStreet ? "mt-1.5 text-3xl font-black uppercase tracking-tight sm:text-4xl" : "mt-1.5 font-display text-4xl font-bold sm:text-5xl"}>
+              Buku Menu {displayName}
+            </h1>
           </div>
-        )}
+          <p className="text-xs sm:text-sm" style={{ color: palette.textMuted }}>
+            {data.menu_items.length} sajian tersedia dari dapur kami.
+          </p>
+        </div>
+      </section>
 
-        {isBistro && (
-          <div className="flex flex-col gap-3 border-b pb-6 sm:flex-row sm:items-end sm:justify-between" style={{ borderColor: borderCol }}>
-            <div>
-              <p className="font-mono text-[11px] uppercase tracking-[0.22em]" style={{ color: accentColor }}>
-                KITCHEN & GRILL MENU
-              </p>
-              <h1 className="mt-2 text-3xl font-bold uppercase tracking-[0.06em] sm:text-5xl">Buku Menu</h1>
-            </div>
-            <p className="max-w-sm text-xs leading-relaxed" style={{ color: textMuted }}>
-              {data.menu_items.length} hidangan aktif tersedia dari dapur {displayName}.
-            </p>
-          </div>
-        )}
-
-        {isCafe && (
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-            <div>
-              <span
-                className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[11px] font-semibold"
-                style={{ backgroundColor: "rgba(47,72,62,0.12)", color: "#2F483E" }}
-              >
-                <UtensilsCrossed size={12} strokeWidth={1.75} aria-hidden="true" />
-                Menu Lengkap Hari Ini
-              </span>
-              <h1 className="mt-2.5 font-display text-4xl font-bold sm:text-5xl">Pilih Hidangan Favoritmu</h1>
-            </div>
-            <p className="text-sm" style={{ color: textBody }}>
-              Tersedia untuk makan di tempat maupun bawa pulang.
-            </p>
-          </div>
-        )}
-
-        {/* Filter & Search Toolbar */}
-        <div className="mt-7 flex flex-col gap-3 md:mt-8 md:flex-row md:items-center md:justify-between">
-          <div className="flex items-center gap-2 overflow-x-auto pb-1 whitespace-nowrap">
+      {/* STICKY Search & Category Filter Bar */}
+      <div
+        className="sticky top-14 z-20 border-y backdrop-blur-md"
+        style={{
+          backgroundColor: palette.barBg,
+          borderColor: palette.borderCol,
+          borderTopWidth: isStreet ? "2px" : "1px",
+          borderBottomWidth: isStreet ? "2px" : "1px",
+        }}
+      >
+        <div className="mx-auto flex max-w-6xl flex-col gap-2.5 px-4 py-3 sm:px-6 md:flex-row md:items-center md:justify-between">
+          <div className="flex items-center gap-2 overflow-x-auto pb-0.5 whitespace-nowrap">
             <button
               type="button"
               onClick={() => setActiveCatId("all")}
-              className="h-10 shrink-0 px-4 text-xs font-semibold transition sm:h-9"
+              className="h-9 shrink-0 px-3.5 text-xs font-semibold transition"
               style={{
-                borderRadius: isCafe ? "9999px" : isBistro ? "2px" : "6px",
-                backgroundColor: activeCatId === "all" ? accentColor : surfaceBg,
-                color: activeCatId === "all" ? "#FFFFFF" : textMain,
-                border: `1px solid ${activeCatId === "all" ? accentColor : borderCol}`,
+                borderRadius: palette.radius,
+                backgroundColor: activeCatId === "all" ? accentColor : palette.surfaceBg,
+                color: activeCatId === "all" ? "#FFFFFF" : palette.textMain,
+                border: `${isStreet ? "2px" : "1px"} solid ${activeCatId === "all" ? (isStreet ? "#181512" : accentColor) : palette.borderCol}`,
               }}
             >
               Semua ({data.menu_items.length})
@@ -256,12 +301,12 @@ export function MenuPage({ forcedSlug, previewPreset, isCustomDomain }: MenuPage
                 key={cat.id}
                 type="button"
                 onClick={() => setActiveCatId(cat.id)}
-                className="h-10 shrink-0 px-4 text-xs font-semibold transition sm:h-9"
+                className="h-9 shrink-0 px-3.5 text-xs font-semibold transition"
                 style={{
-                  borderRadius: isCafe ? "9999px" : isBistro ? "2px" : "6px",
-                  backgroundColor: activeCatId === cat.id ? accentColor : surfaceBg,
-                  color: activeCatId === cat.id ? "#FFFFFF" : textMain,
-                  border: `1px solid ${activeCatId === cat.id ? accentColor : borderCol}`,
+                  borderRadius: palette.radius,
+                  backgroundColor: activeCatId === cat.id ? accentColor : palette.surfaceBg,
+                  color: activeCatId === cat.id ? "#FFFFFF" : palette.textMain,
+                  border: `${isStreet ? "2px" : "1px"} solid ${activeCatId === cat.id ? (isStreet ? "#181512" : accentColor) : palette.borderCol}`,
                 }}
               >
                 {cat.name}
@@ -273,23 +318,23 @@ export function MenuPage({ forcedSlug, previewPreset, isCustomDomain }: MenuPage
             <button
               type="button"
               onClick={() => setOnlyRecommended((v) => !v)}
-              className="inline-flex h-10 shrink-0 items-center gap-1.5 px-3.5 text-xs font-semibold transition sm:h-9"
+              className="inline-flex h-9 shrink-0 items-center gap-1.5 px-3 text-xs font-semibold transition"
               style={{
-                borderRadius: isCafe ? "9999px" : isBistro ? "2px" : "6px",
-                backgroundColor: onlyRecommended ? accentColor : surfaceBg,
-                color: onlyRecommended ? "#FFFFFF" : textBody,
-                border: `1px solid ${onlyRecommended ? accentColor : borderCol}`,
+                borderRadius: palette.radius,
+                backgroundColor: onlyRecommended ? accentColor : palette.surfaceBg,
+                color: onlyRecommended ? "#FFFFFF" : palette.textBody,
+                border: `${isStreet ? "2px" : "1px"} solid ${onlyRecommended ? (isStreet ? "#181512" : accentColor) : palette.borderCol}`,
               }}
             >
               <Flame size={13} strokeWidth={1.75} aria-hidden="true" />
               Terlaris
             </button>
-            <div className="relative flex-1 sm:w-60 sm:flex-none">
+            <div className="relative flex-1 sm:w-56 sm:flex-none">
               <Search
                 size={14}
                 strokeWidth={1.75}
                 className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2"
-                style={{ color: textMuted }}
+                style={{ color: palette.textMuted }}
                 aria-hidden="true"
               />
               <input
@@ -297,29 +342,29 @@ export function MenuPage({ forcedSlug, previewPreset, isCustomDomain }: MenuPage
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 placeholder="Cari menu..."
-                className="h-10 w-full pl-9 pr-3 text-xs focus:outline-none sm:h-9"
+                className="h-9 w-full pl-9 pr-3 text-xs focus:outline-none"
                 style={{
-                  borderRadius: isCafe ? "9999px" : isBistro ? "2px" : "6px",
-                  backgroundColor: surfaceBg,
-                  color: textMain,
-                  border: `1px solid ${borderCol}`,
+                  borderRadius: palette.radius,
+                  backgroundColor: palette.surfaceBg,
+                  color: palette.textMain,
+                  border: `${isStreet ? "2px" : "1px"} solid ${palette.borderCol}`,
                 }}
               />
             </div>
           </div>
         </div>
-      </section>
+      </div>
 
-      {/* Menu Content per Theme */}
-      <main className="mx-auto max-w-6xl px-4 pb-20 sm:px-6">
+      {/* Menu Content */}
+      <main className="mx-auto max-w-6xl px-4 pb-20 pt-8 sm:px-6">
         {groupedCategories.length === 0 ? (
           <div
             className="border p-12 text-center text-sm"
             style={{
-              borderRadius: isCafe ? "24px" : isBistro ? "2px" : "8px",
-              backgroundColor: surfaceBg,
-              borderColor: borderCol,
-              color: textMuted,
+              borderRadius: isCafe ? "24px" : palette.radius,
+              backgroundColor: palette.surfaceBg,
+              borderColor: palette.borderCol,
+              color: palette.textMuted,
             }}
           >
             Tidak ada hidangan yang cocok dengan pencarian Anda.
@@ -328,42 +373,25 @@ export function MenuPage({ forcedSlug, previewPreset, isCustomDomain }: MenuPage
           <div className="space-y-12">
             {groupedCategories.map(({ category, items }) => (
               <section key={category.id}>
-                {/* Category Heading */}
-                {isHeritage && (
-                  <div className="mb-6 flex items-center gap-4">
-                    <h2 className="font-display text-3xl font-bold">{category.name}</h2>
-                    <div className="h-px flex-1" style={{ backgroundColor: "rgba(184,134,11,0.35)" }} />
-                    <span className="font-mono text-xs" style={{ color: textMuted }}>
-                      {items.length} sajian
-                    </span>
-                  </div>
-                )}
+                <div className="mb-5 flex items-center gap-4">
+                  <h2 className={isBistro || isStreet ? "text-lg font-black uppercase tracking-[0.08em]" : "font-display text-3xl font-bold"}>
+                    {category.name}
+                  </h2>
+                  <div className="h-px flex-1" style={{ backgroundColor: palette.borderCol }} />
+                  <span className="font-mono text-xs" style={{ color: palette.textMuted }}>
+                    {items.length} sajian
+                  </span>
+                </div>
 
-                {isBistro && (
-                  <div className="mb-5 flex items-baseline justify-between border-b pb-2.5" style={{ borderColor: borderCol }}>
-                    <h2 className="text-lg font-bold uppercase tracking-[0.14em]" style={{ color: accentColor }}>
-                      {category.name}
-                    </h2>
-                    <span className="font-mono text-[11px]" style={{ color: textMuted }}>
-                      {String(items.length).padStart(2, "0")} ITEMS
-                    </span>
-                  </div>
-                )}
-
-                {isCafe && (
-                  <div className="mb-5 flex items-center justify-between">
-                    <h2 className="font-display text-3xl font-bold">{category.name}</h2>
-                    <span className="text-xs font-medium" style={{ color: textMuted }}>
-                      {items.length} pilihan
-                    </span>
-                  </div>
-                )}
-
-                {/* HERITAGE: Classic Dotted-Leader Banquet Book */}
-                {isHeritage && (
+                {/* Dotted-leader book for Banquet & Omakase */}
+                {isBanquet || activePreset === "omakase" ? (
                   <div
-                    className="rounded-lg border p-5 sm:p-8"
-                    style={{ backgroundColor: "#FFFFFF", borderColor: "rgba(184,134,11,0.32)" }}
+                    className="border p-5 sm:p-8"
+                    style={{
+                      backgroundColor: palette.surfaceBg,
+                      borderColor: palette.borderCol,
+                      borderRadius: palette.radius,
+                    }}
                   >
                     <div className="grid gap-x-10 gap-y-6 md:grid-cols-2">
                       {items.map((item) => {
@@ -374,34 +402,35 @@ export function MenuPage({ forcedSlug, previewPreset, isCustomDomain }: MenuPage
                               <img
                                 src={img}
                                 alt={item.name}
-                                className="h-20 w-20 shrink-0 rounded-md object-cover"
+                                className="h-20 w-20 shrink-0 object-cover"
+                                style={{ borderRadius: palette.radius }}
                                 loading="lazy"
                               />
                             )}
                             <div className="min-w-0 flex-1">
                               <div className="flex items-baseline gap-2">
                                 <h3 className="font-display text-xl font-bold leading-snug">{item.name}</h3>
-                                <span className="flex-1 border-b border-dotted" style={{ borderColor: "rgba(31,22,18,0.22)" }} />
+                                <span className="flex-1 border-b border-dotted" style={{ borderColor: palette.borderCol }} />
                                 <span className="shrink-0 font-mono text-sm font-bold" style={{ color: accentColor }}>
                                   {formatRupiah(item.price)}
                                 </span>
                               </div>
                               {item.description && (
-                                <p className="mt-1 text-xs leading-relaxed" style={{ color: textBody }}>
+                                <p className="mt-1 text-xs leading-relaxed" style={{ color: palette.textBody }}>
                                   {item.description}
                                 </p>
                               )}
                               <div className="mt-1.5 flex flex-wrap gap-1.5">
                                 {item.badge && (
                                   <span
-                                    className="rounded px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider"
-                                    style={{ backgroundColor: "rgba(184,134,11,0.14)", color: "#8C6306" }}
+                                    className="px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider"
+                                    style={{ backgroundColor: "rgba(184,134,11,0.14)", color: accentColor, borderRadius: palette.radius }}
                                   >
                                     {item.badge}
                                   </span>
                                 )}
                                 {!item.is_available && (
-                                  <span className="rounded bg-stone-200 px-2 py-0.5 text-[10px] font-semibold text-stone-600">
+                                  <span className="bg-stone-200 px-2 py-0.5 text-[10px] font-semibold text-stone-600">
                                     Habis
                                   </span>
                                 )}
@@ -412,62 +441,7 @@ export function MenuPage({ forcedSlug, previewPreset, isCustomDomain }: MenuPage
                       })}
                     </div>
                   </div>
-                )}
-
-                {/* BISTRO: Sharp Dark Editorial Rows */}
-                {isBistro && (
-                  <div className="grid gap-4 md:grid-cols-2">
-                    {items.map((item) => {
-                      const img = resolveAssetUrl(item.image_url);
-                      return (
-                        <article
-                          key={item.id}
-                          className="flex gap-4 border p-4 transition hover:border-white/25"
-                          style={{ backgroundColor: surfaceBg, borderColor: borderCol }}
-                        >
-                          {img && (
-                            <img
-                              src={img}
-                              alt={item.name}
-                              className="h-24 w-24 shrink-0 object-cover"
-                              loading="lazy"
-                            />
-                          )}
-                          <div className="flex min-w-0 flex-1 flex-col justify-between">
-                            <div>
-                              <div className="flex items-start justify-between gap-3">
-                                <h3 className="text-sm font-bold uppercase tracking-wide text-white">{item.name}</h3>
-                                <span className="shrink-0 font-mono text-sm font-bold" style={{ color: accentColor }}>
-                                  {formatRupiah(item.price)}
-                                </span>
-                              </div>
-                              {item.description && (
-                                <p className="mt-1.5 text-xs leading-relaxed" style={{ color: textMuted }}>
-                                  {item.description}
-                                </p>
-                              )}
-                            </div>
-                            <div className="mt-2.5 flex items-center gap-2">
-                              {item.badge && (
-                                <span className="border border-[#D97736]/40 px-2 py-0.5 font-mono text-[10px] uppercase text-[#F0A46C]">
-                                  {item.badge}
-                                </span>
-                              )}
-                              {!item.is_available && (
-                                <span className="bg-white/10 px-2 py-0.5 font-mono text-[10px] uppercase text-slate-400">
-                                  Sold Out
-                                </span>
-                              )}
-                            </div>
-                          </div>
-                        </article>
-                      );
-                    })}
-                  </div>
-                )}
-
-                {/* CAFE: Airy Rounded Photo Cards */}
-                {isCafe && (
+                ) : isCafe ? (
                   <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
                     {items.map((item) => {
                       const img = resolveAssetUrl(item.image_url);
@@ -475,9 +449,9 @@ export function MenuPage({ forcedSlug, previewPreset, isCustomDomain }: MenuPage
                         <article
                           key={item.id}
                           className="flex flex-col overflow-hidden rounded-3xl border bg-white p-3 transition hover:shadow-md"
-                          style={{ borderColor: borderCol }}
+                          style={{ borderColor: palette.borderCol }}
                         >
-                          {img && (
+                          {img ? (
                             <div className="relative aspect-[4/3] overflow-hidden rounded-2xl bg-[#F0E8DC]">
                               <img src={img} alt={item.name} className="h-full w-full object-cover" loading="lazy" />
                               {item.badge && (
@@ -489,22 +463,21 @@ export function MenuPage({ forcedSlug, previewPreset, isCustomDomain }: MenuPage
                                 </span>
                               )}
                             </div>
+                          ) : (
+                            <div className="flex h-12 items-center justify-between rounded-2xl bg-[#F8F4EC] px-3">
+                              <UtensilsCrossed size={15} style={{ color: palette.textMuted }} />
+                              {item.badge && (
+                                <span className="rounded-full px-2.5 py-0.5 text-[10px] font-semibold text-white" style={{ backgroundColor: accentColor }}>
+                                  {item.badge}
+                                </span>
+                              )}
+                            </div>
                           )}
                           <div className="flex flex-1 flex-col justify-between p-2.5">
                             <div>
-                              <div className="flex items-start justify-between gap-2">
-                                <h3 className="font-display text-xl font-bold leading-snug">{item.name}</h3>
-                                {!img && item.badge && (
-                                  <span
-                                    className="shrink-0 rounded-full px-2.5 py-0.5 text-[10px] font-semibold"
-                                    style={{ backgroundColor: "rgba(47,72,62,0.12)", color: "#2F483E" }}
-                                  >
-                                    {item.badge}
-                                  </span>
-                                )}
-                              </div>
+                              <h3 className="font-display text-xl font-bold leading-snug">{item.name}</h3>
                               {item.description && (
-                                <p className="mt-1 text-xs leading-relaxed" style={{ color: textBody }}>
+                                <p className="mt-1 text-xs leading-relaxed" style={{ color: palette.textBody }}>
                                   {item.description}
                                 </p>
                               )}
@@ -515,6 +488,70 @@ export function MenuPage({ forcedSlug, previewPreset, isCustomDomain }: MenuPage
                               </span>
                               {!item.is_available && (
                                 <span className="rounded-full bg-stone-200 px-2.5 py-0.5 text-[10px] font-semibold text-stone-600">
+                                  Habis
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        </article>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <div className="grid gap-4 md:grid-cols-2">
+                    {items.map((item) => {
+                      const img = resolveAssetUrl(item.image_url);
+                      return (
+                        <article
+                          key={item.id}
+                          className="flex gap-4 p-4 transition"
+                          style={{
+                            backgroundColor: palette.surfaceBg,
+                            border: `${isStreet ? "2px" : "1px"} solid ${palette.borderCol}`,
+                            borderRadius: palette.radius,
+                            boxShadow: isStreet ? "4px 4px 0 #181512" : undefined,
+                          }}
+                        >
+                          {img && (
+                            <img
+                              src={img}
+                              alt={item.name}
+                              className="h-24 w-24 shrink-0 object-cover"
+                              style={{ borderRadius: palette.radius }}
+                              loading="lazy"
+                            />
+                          )}
+                          <div className="flex min-w-0 flex-1 flex-col justify-between">
+                            <div>
+                              <div className="flex items-start justify-between gap-3">
+                                <h3 className={isBistro || isStreet ? "text-sm font-bold uppercase tracking-wide" : "font-display text-xl font-bold"}>
+                                  {item.name}
+                                </h3>
+                                <span className="shrink-0 font-mono text-sm font-bold" style={{ color: accentColor }}>
+                                  {formatRupiah(item.price)}
+                                </span>
+                              </div>
+                              {item.description && (
+                                <p className="mt-1.5 text-xs leading-relaxed" style={{ color: palette.textBody }}>
+                                  {item.description}
+                                </p>
+                              )}
+                            </div>
+                            <div className="mt-2.5 flex items-center gap-2">
+                              {item.badge && (
+                                <span
+                                  className="px-2 py-0.5 font-mono text-[10px] font-bold uppercase"
+                                  style={{
+                                    backgroundColor: isBistro ? "rgba(217,119,54,0.18)" : isStreet ? "#F6C945" : "rgba(15,76,117,0.1)",
+                                    color: isBistro ? "#F0A46C" : isStreet ? "#181512" : accentColor,
+                                    borderRadius: palette.radius,
+                                  }}
+                                >
+                                  {item.badge}
+                                </span>
+                              )}
+                              {!item.is_available && (
+                                <span className="bg-stone-500/20 px-2 py-0.5 font-mono text-[10px] uppercase">
                                   Habis
                                 </span>
                               )}

@@ -5,16 +5,18 @@ import { api, formatRupiah, resolveAssetUrl } from "../lib/api";
 import type { AuthUser, MenuItem, TenantOverviewPayload, ThemePreset } from "../types";
 import { ImageUploadField } from "../components/ImageUploadField";
 
+import { ALL_THEME_PRESETS, normalizeThemePreset, PREVIEW_META } from "../lib/storefrontTheme";
+
 interface TenantAdminPageProps {
   user: AuthUser;
   onLogout: () => void;
 }
 
-const THEME_CARDS: ReadonlyArray<{ key: ThemePreset; title: string; desc: string }> = [
-  { key: "heritage", title: "Restoran Keluarga & Banquet", desc: "Banner penuh hangat klasik, buku menu dengan garis titik harga, dan etalase ruang VIP." },
-  { key: "bistro", title: "Modern Bistro & Grill", desc: "Latar charcoal gelap dengan aksen tembaga yang menonjolkan foto hidangan." },
-  { key: "cafe", title: "Artisan Cafe & Kitchen", desc: "Nuansa krem hangat dengan kartu membulat lembut dan navigasi pil santai." },
-];
+const THEME_CARDS: ReadonlyArray<{ key: ThemePreset; title: string; desc: string }> = ALL_THEME_PRESETS.map((key) => ({
+  key,
+  title: PREVIEW_META[key].label,
+  desc: PREVIEW_META[key].summary,
+}));
 
 export function TenantAdminPage({ user, onLogout }: TenantAdminPageProps) {
   const params = useParams<{ tenantId: string }>();
@@ -54,7 +56,7 @@ export function TenantAdminPage({ user, onLogout }: TenantAdminPageProps) {
   const [profName, setProfName] = useState("");
   const [profTagline, setProfTagline] = useState("");
   const [profStory, setProfStory] = useState("");
-  const [profPreset, setProfPreset] = useState<ThemePreset>("heritage");
+  const [profPreset, setProfPreset] = useState<ThemePreset>("banquet");
   const [profColor, setProfColor] = useState("#8B1E24");
   const [profLogo, setProfLogo] = useState("");
   const [profHero, setProfHero] = useState("");
@@ -68,7 +70,7 @@ export function TenantAdminPage({ user, onLogout }: TenantAdminPageProps) {
       setProfName(res.tenant.name);
       setProfTagline(res.tenant.tagline);
       setProfStory(res.tenant.story);
-      setProfPreset(res.tenant.theme_preset);
+      setProfPreset(normalizeThemePreset(res.tenant.theme_preset));
       setProfColor(res.tenant.primary_color);
       setProfLogo(res.tenant.logo_url || "");
       setProfHero(res.tenant.hero_image_url || "");

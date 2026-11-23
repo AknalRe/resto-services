@@ -6,7 +6,7 @@ export interface AuthUser {
   tenantId: number | null;
 }
 
-export type ThemePreset = "heritage" | "bistro" | "cafe";
+export type ThemePreset = "banquet" | "bistro" | "cafe" | "omakase" | "coastal" | "street";
 export type PlanKind = "starter" | "profesional" | "multi-cabang";
 
 export interface Tenant {

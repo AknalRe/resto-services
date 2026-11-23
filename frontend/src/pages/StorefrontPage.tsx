@@ -2,10 +2,18 @@ import { useEffect, useMemo, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
 import { api, resolveAssetUrl } from "../lib/api";
-import { getStorefrontPaths, PREVIEW_META } from "../lib/storefrontTheme";
+import {
+  ALL_THEME_PRESETS,
+  getStorefrontPaths,
+  normalizeThemePreset,
+  PREVIEW_META,
+} from "../lib/storefrontTheme";
 import { HeritageTemplate } from "../components/storefront/HeritageTemplate";
 import { BistroTemplate } from "../components/storefront/BistroTemplate";
 import { CafeTemplate } from "../components/storefront/CafeTemplate";
+import { OmakaseTemplate } from "../components/storefront/OmakaseTemplate";
+import { CoastalTemplate } from "../components/storefront/CoastalTemplate";
+import { StreetTemplate } from "../components/storefront/StreetTemplate";
 import type { StorefrontPayload, ThemePreset } from "../types";
 
 interface StorefrontPageProps {
@@ -33,7 +41,7 @@ export function StorefrontPage({ forcedSlug, previewPreset, isCustomDomain }: St
       .finally(() => setLoading(false));
   }, [slug]);
 
-  const activePreset: ThemePreset = previewPreset || data?.tenant.theme_preset || "heritage";
+  const activePreset: ThemePreset = previewPreset || normalizeThemePreset(data?.tenant.theme_preset);
   const accentColor = previewPreset ? PREVIEW_META[previewPreset].color : data?.tenant.primary_color || "#8B1E24";
 
   useEffect(() => {
@@ -62,7 +70,7 @@ export function StorefrontPage({ forcedSlug, previewPreset, isCustomDomain }: St
       })
       .slice(0, 4);
 
-    if (previewPreset && previewPreset !== "heritage") {
+    if (previewPreset && previewPreset !== "banquet") {
       const sampleImgs = PREVIEW_META[previewPreset].sampleGallery;
       return picked.map((item, idx) => ({
         ...item,
@@ -145,9 +153,9 @@ export function StorefrontPage({ forcedSlug, previewPreset, isCustomDomain }: St
       {previewPreset && (
         <div className="border-b px-3 py-2 text-xs text-white sm:px-4" style={{ backgroundColor: "#0B2A57", borderColor: "rgba(255,255,255,0.15)" }}>
           <div className="mx-auto flex max-w-6xl items-center justify-between gap-2 overflow-x-auto whitespace-nowrap">
-            <div className="flex items-center gap-1.5 sm:gap-2">
+            <div className="flex items-center gap-1.5">
               <span className="hidden opacity-80 sm:inline">Contoh Tema:</span>
-              {(["heritage", "bistro", "cafe"] as ThemePreset[]).map((p) => (
+              {ALL_THEME_PRESETS.map((p) => (
                 <Link
                   key={p}
                   to={`/preview/${p}`}
@@ -163,8 +171,7 @@ export function StorefrontPage({ forcedSlug, previewPreset, isCustomDomain }: St
             </div>
             <Link to="/" className="inline-flex shrink-0 items-center gap-1 font-semibold text-amber-300 no-underline hover:underline">
               <ArrowLeft size={12} strokeWidth={2} aria-hidden="true" />
-              <span className="hidden sm:inline">Beranda Reneo Resto</span>
-              <span className="sm:hidden">Kembali</span>
+              <span className="hidden sm:inline">Beranda</span>
             </Link>
           </div>
         </div>
@@ -174,6 +181,12 @@ export function StorefrontPage({ forcedSlug, previewPreset, isCustomDomain }: St
         <BistroTemplate {...templateProps} />
       ) : activePreset === "cafe" ? (
         <CafeTemplate {...templateProps} />
+      ) : activePreset === "omakase" ? (
+        <OmakaseTemplate {...templateProps} />
+      ) : activePreset === "coastal" ? (
+        <CoastalTemplate {...templateProps} />
+      ) : activePreset === "street" ? (
+        <StreetTemplate {...templateProps} />
       ) : (
         <HeritageTemplate {...templateProps} />
       )}

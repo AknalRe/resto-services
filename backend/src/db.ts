@@ -26,7 +26,7 @@ export async function initDatabase(pool: Pool): Promise<void> {
       tagline TEXT NOT NULL DEFAULT '',
       story TEXT NOT NULL DEFAULT '',
       custom_domain TEXT UNIQUE,
-      theme_preset TEXT NOT NULL DEFAULT 'heritage' CHECK(theme_preset IN ('heritage', 'bistro', 'cafe')),
+      theme_preset TEXT NOT NULL DEFAULT 'banquet' CHECK(theme_preset IN ('banquet', 'heritage', 'bistro', 'cafe', 'omakase', 'coastal', 'street')),
       primary_color TEXT NOT NULL DEFAULT '#8B1E24',
       logo_url TEXT NOT NULL DEFAULT '',
       hero_image_url TEXT NOT NULL DEFAULT '',
@@ -142,15 +142,25 @@ async function seedInitialData(pool: Pool): Promise<void> {
     );
   }
 
+  // Ensure CHECK constraint supports all 6 F&B themes on existing databases
+  await pool.query(`
+    ALTER TABLE tenants DROP CONSTRAINT IF EXISTS tenants_theme_preset_check;
+    ALTER TABLE tenants ADD CONSTRAINT tenants_theme_preset_check
+      CHECK (theme_preset IN ('banquet', 'heritage', 'bistro', 'cafe', 'omakase', 'coastal', 'street'));
+    UPDATE tenants SET theme_preset = 'banquet' WHERE theme_preset = 'heritage';
+    UPDATE tenants SET name = 'Rumah Makan Nusantara' WHERE name = 'Rumah Makan Heritage';
+    UPDATE menu_items SET name = 'Ayam Goreng Mentega Spesial' WHERE name = 'Ayam Goreng Mentega Heritage';
+  `);
+
   // 2. Seed rich demo restaurant tenant if none exists
   const existingTenants = await pool.query("SELECT id FROM tenants LIMIT 1");
   if ((existingTenants.rowCount ?? 0) > 0) {
     // Ensure demo tenant gets starter hero photo if still blank
     await pool.query(
-      "UPDATE tenants SET hero_image_url = '/demo/hero-heritage.jpg' WHERE slug = 'kedai-heritage' AND hero_image_url = ''"
+      "UPDATE tenants SET hero_image_url = '/demo/hero-heritage.jpg' WHERE slug IN ('kedai-heritage', 'rumah-makan-nusantara') AND hero_image_url = ''"
     );
     await pool.query(
-      "UPDATE menu_items SET image_url = '/demo/dish-ayam.jpg' WHERE name = 'Ayam Goreng Mentega Heritage' AND image_url = ''"
+      "UPDATE menu_items SET image_url = '/demo/dish-ayam.jpg' WHERE name = 'Ayam Goreng Mentega Spesial' AND image_url = ''"
     );
     await pool.query(
       "UPDATE menu_items SET image_url = '/demo/dish-gurame.jpg' WHERE name = 'Gurame Asam Manis Nanas' AND image_url = ''"
@@ -165,13 +175,13 @@ async function seedInitialData(pool: Pool): Promise<void> {
     `INSERT INTO tenants (
       slug, name, tagline, story, theme_preset, primary_color, hero_image_url,
       instagram_url, plan, status
-    ) VALUES ($1, $2, $3, $4, 'heritage', '#8B1E24', '/demo/hero-heritage.jpg', $5, 'multi-cabang', 'active')
+    ) VALUES ($1, $2, $3, $4, 'banquet', '#8B1E24', '/demo/hero-heritage.jpg', $5, 'multi-cabang', 'active')
     RETURNING id`,
     [
-      "kedai-heritage",
-      "Rumah Makan Heritage",
+      "rumah-makan-nusantara",
+      "Rumah Makan Nusantara",
       "Sajian Klasik Keluarga, Dimasak Segar Setiap Hari",
-      "Sejak 1988 kami menjaga resep warisan dapur keluarga dengan bahan pilihan, ruang makan nyaman untuk kumpul keluarga, dan ruang privat untuk jamuan bisnis maupun syukuran.",
+      "Sejak 1988 kami menjaga resep dapur keluarga dengan bahan pilihan, ruang makan nyaman untuk kumpul keluarga, dan ruang privat untuk jamuan bisnis maupun syukuran.",
       "https://instagram.com",
     ]
   );
@@ -182,7 +192,7 @@ async function seedInitialData(pool: Pool): Promise<void> {
     `INSERT INTO users (email, name, password_hash, role, tenant_id)
      VALUES ($1, $2, $3, 'tenant_admin', $4)
      ON CONFLICT (email) DO NOTHING`,
-    ["owner@heritage.reneo.my.id", "Pemilik Heritage", hashPassword("heritage123"), tenantId]
+    ["owner@nusantara.reneo.my.id", "Pemilik Nusantara", hashPassword("nusantara123"), tenantId]
   );
 
   // Branches
@@ -207,7 +217,7 @@ async function seedInitialData(pool: Pool): Promise<void> {
 
   // Menu Items
   const items = [
-    [catIds[0], "Ayam Goreng Mentega Heritage", "Ayam kampung goreng renyah disiram saus mentega bawang bombay khas dapur kami.", 88000, "/demo/dish-ayam.jpg", "Terlaris", 1],
+    [catIds[0], "Ayam Goreng Mentega Spesial", "Ayam kampung goreng renyah disiram saus mentega bawang bombay khas dapur kami.", 88000, "/demo/dish-ayam.jpg", "Terlaris", 1],
     [catIds[0], "Sapi Lada Hitam Hotplate", "Irisan has dalam empuk dimasak dengan lada hitam sangrai dan paprika segar.", 118000, "", "Terlaris", 2],
     [catIds[0], "Bebek Panggang Bumbu Rempah", "Bebek panggang kulit garing dengan saus hoisin buatan rumah dan acar lobak.", 145000, "", "Baru", 3],
     [catIds[1], "Gurame Asam Manis Nanas", "Ikan gurame segar fillet goreng tepung dengan saus asam manis nanas madu.", 135000, "/demo/dish-gurame.jpg", "Terlaris", 1],

@@ -32,7 +32,7 @@ export function registerSuperadminRoutes(app: FastifyInstance, pool: Pool): void
       name?: string;
       slug?: string;
       custom_domain?: string;
-      theme_preset?: "heritage" | "bistro" | "cafe";
+      theme_preset?: "banquet" | "heritage" | "bistro" | "cafe" | "omakase" | "coastal" | "street";
       primary_color?: string;
       plan?: "starter" | "profesional" | "multi-cabang";
       owner_email?: string;
@@ -49,7 +49,7 @@ export function registerSuperadminRoutes(app: FastifyInstance, pool: Pool): void
     }
 
     const customDomain = (request.body?.custom_domain || "").trim().toLowerCase() || null;
-    const preset = request.body?.theme_preset || "heritage";
+    const preset = request.body?.theme_preset || "banquet";
     const color = (request.body?.primary_color || "#8B1E24").trim();
     const plan = request.body?.plan || "profesional";
 
@@ -96,7 +96,7 @@ export function registerSuperadminRoutes(app: FastifyInstance, pool: Pool): void
       custom_domain?: string | null;
       plan?: "starter" | "profesional" | "multi-cabang";
       status?: "active" | "suspended";
-      theme_preset?: "heritage" | "bistro" | "cafe";
+      theme_preset?: "banquet" | "heritage" | "bistro" | "cafe" | "omakase" | "coastal" | "street";
     };
   }>("/api/superadmin/tenants/:id", async (request, reply) => {
     if (!(await requireSuperadmin(request, reply))) return;

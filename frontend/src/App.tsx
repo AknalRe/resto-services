@@ -2,7 +2,8 @@ import { useEffect, useState } from "react";
 import { BrowserRouter, Navigate, Route, Routes, useParams } from "react-router-dom";
 import { api } from "./lib/api";
 import { getAppBasePath } from "./lib/basePath";
-import type { AuthUser, Tenant, ThemePreset } from "./types";
+import { normalizeThemePreset } from "./lib/storefrontTheme";
+import type { AuthUser, Tenant } from "./types";
 import { PlatformHomePage } from "./pages/PlatformHomePage";
 import { StorefrontPage } from "./pages/StorefrontPage";
 import { MenuPage } from "./pages/MenuPage";
@@ -12,16 +13,12 @@ import { SuperadminPage } from "./pages/SuperadminPage";
 
 function TemplatePreviewRoute({ defaultSlug }: { defaultSlug: string }) {
   const { preset } = useParams<{ preset: string }>();
-  const validPreset: ThemePreset =
-    preset === "bistro" || preset === "cafe" || preset === "heritage" ? preset : "heritage";
-  return <StorefrontPage forcedSlug={defaultSlug} previewPreset={validPreset} />;
+  return <StorefrontPage forcedSlug={defaultSlug} previewPreset={normalizeThemePreset(preset)} />;
 }
 
 function TemplatePreviewMenuRoute({ defaultSlug }: { defaultSlug: string }) {
   const { preset } = useParams<{ preset: string }>();
-  const validPreset: ThemePreset =
-    preset === "bistro" || preset === "cafe" || preset === "heritage" ? preset : "heritage";
-  return <MenuPage forcedSlug={defaultSlug} previewPreset={validPreset} />;
+  return <MenuPage forcedSlug={defaultSlug} previewPreset={normalizeThemePreset(preset)} />;
 }
 
 export function App() {
@@ -58,7 +55,7 @@ export function App() {
   };
 
   const basePath = getAppBasePath();
-  const demoSlug = restaurants[0]?.slug || "kedai-heritage";
+  const demoSlug = restaurants[0]?.slug || "rumah-makan-nusantara";
 
   if (!authChecked || hostMode === "loading") {
     return (

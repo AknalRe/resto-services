@@ -14,6 +14,7 @@ import {
   X,
 } from "lucide-react";
 import { formatRupiah, resolveAssetUrl } from "../../lib/api";
+import { useScrolledPast } from "../../hooks/useScrolledPast";
 import { ReservationForm } from "../ReservationForm";
 import type { MenuItem, StorefrontPayload } from "../../types";
 
@@ -46,6 +47,7 @@ export function HeritageTemplate({
 }: TemplateProps) {
   const [selectedEvent, setSelectedEvent] = useState("Jamuan Keluarga / VIP");
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
+  const showMobileBar = useScrolledPast(420);
   const { tenant, branches, promos, event_packages, menu_items } = data;
   const primaryBranch = branches[0];
   const logoSrc = resolveAssetUrl(tenant.logo_url);
@@ -107,14 +109,12 @@ export function HeritageTemplate({
             </span>
           </a>
 
-          <div className="flex shrink-0 items-center justify-end gap-2">
+          <div className="flex shrink-0 items-center justify-end gap-6">
             <a
               href="#reservasi"
-              className="hidden h-9 items-center gap-1.5 rounded px-4 text-xs font-semibold uppercase tracking-wider text-white no-underline transition hover:opacity-90 md:inline-flex"
-              style={{ backgroundColor: accentColor }}
+              className="hidden text-xs font-semibold uppercase tracking-[0.12em] text-[#4E413A] no-underline hover:text-[#8B1E24] md:inline-block"
             >
-              <Calendar size={13} strokeWidth={1.75} aria-hidden="true" />
-              Reservasi
+              Lokasi &amp; Reservasi
             </a>
             <button
               type="button"
@@ -443,10 +443,10 @@ export function HeritageTemplate({
               Isi jadwal kunjungan Anda, lalu konfirmasi instan melalui WhatsApp cabang pilihan.
             </p>
             <div className="mt-6">
-              <ReservationForm
+                <ReservationForm
                 slug={slug}
                 branches={branches}
-                preset="heritage"
+                preset="banquet"
                 accentColor={accentColor}
                 selectedEventType={selectedEvent}
               />
@@ -460,7 +460,8 @@ export function HeritageTemplate({
         <p className="mt-1 px-4">{displayTagline}</p>
       </footer>
 
-      {/* Mobile Sticky Bottom Action Bar */}
+      {/* Mobile Sticky Bottom Action Bar (only after scrolling past hero) */}
+      {showMobileBar && (
       <div className="fixed inset-x-0 bottom-0 z-40 grid grid-cols-2 gap-2 border-t bg-white/95 p-2.5 backdrop-blur-md md:hidden" style={{ borderColor: "rgba(184,134,11,0.3)" }}>
         <Link
           to={menuPath}
@@ -479,6 +480,7 @@ export function HeritageTemplate({
           Reservasi
         </a>
       </div>
+      )}
     </div>
   );
 }

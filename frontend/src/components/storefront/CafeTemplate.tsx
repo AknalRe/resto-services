@@ -13,6 +13,7 @@ import {
   X,
 } from "lucide-react";
 import { formatRupiah, resolveAssetUrl } from "../../lib/api";
+import { useScrolledPast } from "../../hooks/useScrolledPast";
 import { ReservationForm } from "../ReservationForm";
 import type { TemplateProps } from "./HeritageTemplate";
 
@@ -31,6 +32,7 @@ export function CafeTemplate({
 }: TemplateProps) {
   const [selectedEvent, setSelectedEvent] = useState("Kumpul Santai / Arisan");
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
+  const showMobileBar = useScrolledPast(420);
   const { tenant, branches, promos, event_packages, menu_items } = data;
   const primaryBranch = branches[0];
   const logoSrc = resolveAssetUrl(tenant.logo_url);
@@ -68,25 +70,15 @@ export function CafeTemplate({
             <a href="#cabang" className="no-underline hover:text-[#2E2219]">Kedai Kami</a>
           </nav>
 
-          <div className="flex shrink-0 items-center gap-1.5">
-            <Link
-              to={menuPath}
-              className="hidden h-9 items-center gap-1.5 rounded-full px-4 text-xs font-semibold text-white no-underline transition hover:opacity-90 md:inline-flex"
-              style={{ backgroundColor: accentColor }}
-            >
-              <BookOpen size={13} strokeWidth={1.75} aria-hidden="true" />
-              Buku Menu
-            </Link>
-            <button
-              type="button"
-              onClick={() => setMobileNavOpen((v) => !v)}
-              aria-label="Menu navigasi"
-              className="inline-flex h-9 w-9 items-center justify-center rounded-full border md:hidden"
-              style={{ borderColor: "rgba(46,34,25,0.16)", color: "#2E2219" }}
-            >
-              {mobileNavOpen ? <X size={16} strokeWidth={1.75} /> : <Menu size={16} strokeWidth={1.75} />}
-            </button>
-          </div>
+          <button
+            type="button"
+            onClick={() => setMobileNavOpen((v) => !v)}
+            aria-label="Menu navigasi"
+            className="inline-flex h-9 w-9 items-center justify-center rounded-full border md:hidden"
+            style={{ borderColor: "rgba(46,34,25,0.16)", color: "#2E2219" }}
+          >
+            {mobileNavOpen ? <X size={16} strokeWidth={1.75} /> : <Menu size={16} strokeWidth={1.75} />}
+          </button>
         </header>
 
         {mobileNavOpen && (
@@ -161,21 +153,11 @@ export function CafeTemplate({
 
       {/* Lookbook / Polaroid Best-Sellers Grid */}
       <section id="terlaris" className="mx-auto max-w-6xl px-4 py-10 sm:px-6 sm:py-12">
-        <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.18em]" style={{ color: accentColor }}>
-              Rekomendasi &amp; Terlaris
-            </p>
-            <h2 className="mt-1 font-display text-3xl font-bold sm:text-4xl">Favorit Tamu Minggu Ini</h2>
-          </div>
-          <Link
-            to={menuPath}
-            className="inline-flex items-center gap-1.5 text-xs font-semibold no-underline hover:underline"
-            style={{ color: accentColor }}
-          >
-            Semua {menu_items.length} menu di Buku Menu
-            <ArrowRight size={13} strokeWidth={2} />
-          </Link>
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-[0.18em]" style={{ color: accentColor }}>
+            Rekomendasi &amp; Terlaris
+          </p>
+          <h2 className="mt-1 font-display text-3xl font-bold sm:text-4xl">Favorit Tamu Minggu Ini</h2>
         </div>
 
         <div className="mt-6 grid grid-cols-1 gap-4 sm:mt-7 sm:grid-cols-2 sm:gap-5 lg:grid-cols-4">
@@ -224,7 +206,7 @@ export function CafeTemplate({
             style={{ backgroundColor: accentColor }}
           >
             <BookOpen size={14} strokeWidth={1.75} aria-hidden="true" />
-            Buka Buku Menu Lengkap
+            Buka Buku Menu Lengkap ({menu_items.length} Menu)
           </Link>
         </div>
       </section>
@@ -331,7 +313,8 @@ export function CafeTemplate({
         <p className="mt-0.5 px-4">{displayTagline}</p>
       </footer>
 
-      {/* Mobile Sticky Bottom Action Bar */}
+      {/* Mobile Sticky Bottom Action Bar (only after scrolling past hero) */}
+      {showMobileBar && (
       <div className="fixed inset-x-0 bottom-0 z-40 grid grid-cols-2 gap-2 border-t bg-white/95 p-2.5 backdrop-blur-md md:hidden" style={{ borderColor: "rgba(46,34,25,0.1)" }}>
         <Link
           to={menuPath}
@@ -350,6 +333,7 @@ export function CafeTemplate({
           Pesan Meja
         </a>
       </div>
+      )}
     </div>
   );
 }
