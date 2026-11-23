@@ -95,6 +95,17 @@ export function StorefrontPage({ forcedSlug, previewPreset, isCustomDomain }: St
     return Array.from(new Set(urls)).slice(0, 3);
   }, [data, previewPreset]);
 
+  const heroImages = useMemo(() => {
+    if (previewPreset) {
+      const list = [PREVIEW_META[previewPreset].sampleHero, ...PREVIEW_META[previewPreset].sampleGallery];
+      return Array.from(new Set(list)).map((u) => resolveAssetUrl(u));
+    }
+    if (!data) return [];
+    const fromArray = Array.isArray(data.tenant.hero_images) ? data.tenant.hero_images.filter(Boolean) : [];
+    const list = fromArray.length > 0 ? fromArray : data.tenant.hero_image_url ? [data.tenant.hero_image_url] : [];
+    return list.map((u) => resolveAssetUrl(u));
+  }, [data, previewPreset]);
+
   if (loading) {
     return (
       <main className="mx-auto flex min-h-screen max-w-5xl items-center justify-center px-4 text-sm" style={{ color: "var(--ink-muted)" }}>
@@ -129,16 +140,6 @@ export function StorefrontPage({ forcedSlug, previewPreset, isCustomDomain }: St
   const displayStory = previewPreset
     ? PREVIEW_META[previewPreset].sampleStory
     : data.tenant.story || PREVIEW_META[activePreset].sampleStory;
-  const heroImages = useMemo(() => {
-    if (previewPreset) {
-      const list = [PREVIEW_META[previewPreset].sampleHero, ...PREVIEW_META[previewPreset].sampleGallery];
-      return Array.from(new Set(list)).map((u) => resolveAssetUrl(u));
-    }
-    if (!data) return [];
-    const fromArray = Array.isArray(data.tenant.hero_images) ? data.tenant.hero_images.filter(Boolean) : [];
-    const list = fromArray.length > 0 ? fromArray : data.tenant.hero_image_url ? [data.tenant.hero_image_url] : [];
-    return list.map((u) => resolveAssetUrl(u));
-  }, [data, previewPreset]);
 
   const heroTransition = previewPreset
     ? previewPreset === "bistro" || previewPreset === "street"
