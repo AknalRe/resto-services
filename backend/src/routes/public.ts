@@ -56,7 +56,8 @@ export function registerPublicRoutes(app: FastifyInstance, pool: Pool): void {
     const slug = request.params.slug.trim().toLowerCase();
     const tRes = await pool.query(
       `SELECT id, slug, name, tagline, story, custom_domain, theme_preset, primary_color,
-        logo_url, hero_image_url, instagram_url, facebook_url, tiktok_url, plan
+        logo_url, hero_image_url, hero_images, hero_transition, hero_interval_ms,
+        instagram_url, facebook_url, tiktok_url, plan
        FROM tenants WHERE slug = $1 AND status = 'active' LIMIT 1`,
       [slug]
     );

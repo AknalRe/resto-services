@@ -15,8 +15,9 @@ import {
 } from "lucide-react";
 import { formatRupiah, resolveAssetUrl } from "../../lib/api";
 import { useScrolledPast } from "../../hooks/useScrolledPast";
+import { HeroBannerSlider } from "./HeroBannerSlider";
 import { ReservationForm } from "../ReservationForm";
-import type { MenuItem, StorefrontPayload } from "../../types";
+import type { HeroTransition, MenuItem, StorefrontPayload } from "../../types";
 
 export interface TemplateProps {
   data: StorefrontPayload;
@@ -26,6 +27,9 @@ export interface TemplateProps {
   displayStory: string;
   accentColor: string;
   heroImageUrl: string;
+  heroImages: string[];
+  heroTransition: HeroTransition;
+  heroIntervalMs: number;
   galleryImages: string[];
   menuPath: string;
   bestSellers: MenuItem[];
@@ -40,6 +44,9 @@ export function HeritageTemplate({
   displayStory,
   accentColor,
   heroImageUrl,
+  heroImages,
+  heroTransition,
+  heroIntervalMs,
   galleryImages,
   menuPath,
   bestSellers,
@@ -153,13 +160,21 @@ export function HeritageTemplate({
 
       {/* Full-Bleed Grand Banquet Hero with Centered Gold Crest */}
       <section id="beranda" className="relative flex min-h-[62vh] items-center justify-center overflow-hidden px-4 py-12 text-center sm:min-h-[80vh] sm:py-24">
-        {heroImageUrl ? (
+        {heroImages.length > 0 ? (
+          <HeroBannerSlider
+            images={heroImages}
+            alt={displayName}
+            transition={heroTransition}
+            intervalMs={heroIntervalMs}
+            className="absolute inset-0 h-full w-full"
+          />
+        ) : heroImageUrl ? (
           <img src={heroImageUrl} alt={displayName} className="absolute inset-0 h-full w-full object-cover" />
         ) : (
           <div className="absolute inset-0" style={{ backgroundColor: "#260D10" }} />
         )}
         <div
-          className="absolute inset-0"
+          className="pointer-events-none absolute inset-0 z-[2]"
           style={{
             background: "linear-gradient(180deg, rgba(24,10,12,0.72) 0%, rgba(24,10,12,0.52) 50%, rgba(24,10,12,0.86) 100%)",
           }}

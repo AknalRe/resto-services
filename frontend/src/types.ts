@@ -7,6 +7,7 @@ export interface AuthUser {
 }
 
 export type ThemePreset = "banquet" | "bistro" | "cafe" | "omakase" | "coastal" | "street";
+export type HeroTransition = "fade" | "slide" | "zoom";
 export type PlanKind = "starter" | "profesional" | "multi-cabang";
 
 export interface Tenant {
@@ -20,6 +21,9 @@ export interface Tenant {
   primary_color: string;
   logo_url: string;
   hero_image_url: string;
+  hero_images?: string[];
+  hero_transition?: HeroTransition;
+  hero_interval_ms?: number;
   instagram_url: string;
   facebook_url: string;
   tiktok_url: string;

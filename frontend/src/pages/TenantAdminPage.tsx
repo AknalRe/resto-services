@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useState, type FormEvent } from "react";
 import { Link, useParams } from "react-router-dom";
-import { ArrowLeft, BookOpen, Check, ExternalLink, LogOut, Pencil, Plus, Trash2, X } from "lucide-react";
+import { ArrowDown, ArrowLeft, ArrowUp, BookOpen, Check, ExternalLink, LogOut, Pencil, Plus, Trash2, X } from "lucide-react";
 import { api, formatRupiah, resolveAssetUrl } from "../lib/api";
-import type { AuthUser, MenuItem, TenantOverviewPayload, ThemePreset } from "../types";
+import type { AuthUser, HeroTransition, MenuItem, TenantOverviewPayload, ThemePreset } from "../types";
 import { ImageUploadField } from "../components/ImageUploadField";
 
 import { ALL_THEME_PRESETS, normalizeThemePreset, PREVIEW_META } from "../lib/storefrontTheme";
@@ -60,6 +60,10 @@ export function TenantAdminPage({ user, onLogout }: TenantAdminPageProps) {
   const [profColor, setProfColor] = useState("#8B1E24");
   const [profLogo, setProfLogo] = useState("");
   const [profHero, setProfHero] = useState("");
+  const [profHeroImages, setProfHeroImages] = useState<string[]>([]);
+  const [newSlideUrl, setNewSlideUrl] = useState("");
+  const [profHeroTransition, setProfHeroTransition] = useState<HeroTransition>("fade");
+  const [profHeroInterval, setProfHeroInterval] = useState<number>(5000);
 
   const loadOverview = useCallback(async () => {
     setLoading(true);
@@ -74,6 +78,14 @@ export function TenantAdminPage({ user, onLogout }: TenantAdminPageProps) {
       setProfColor(res.tenant.primary_color);
       setProfLogo(res.tenant.logo_url || "");
       setProfHero(res.tenant.hero_image_url || "");
+      const slides = Array.isArray(res.tenant.hero_images) && res.tenant.hero_images.length > 0
+        ? res.tenant.hero_images
+        : res.tenant.hero_image_url
+          ? [res.tenant.hero_image_url]
+          : [];
+      setProfHeroImages(slides);
+      setProfHeroTransition(res.tenant.hero_transition || "fade");
+      setProfHeroInterval(res.tenant.hero_interval_ms ?? 5000);
       if (!itemCat && res.categories[0]) setItemCat(String(res.categories[0].id));
     } catch (err) {
       setError(err instanceof Error ? err.message : "Gagal memuat data restoran.");
@@ -197,8 +209,30 @@ export function TenantAdminPage({ user, onLogout }: TenantAdminPageProps) {
     await loadOverview();
   };
 
+  const addHeroSlide = () => {
+    const url = newSlideUrl.trim();
+    if (!url) return;
+    setProfHeroImages((prev) => [...prev, url].slice(0, 8));
+    setNewSlideUrl("");
+  };
+
+  const moveHeroSlide = (idx: number, dir: -1 | 1) => {
+    setProfHeroImages((prev) => {
+      const next = [...prev];
+      const target = idx + dir;
+      if (target < 0 || target >= next.length) return prev;
+      [next[idx], next[target]] = [next[target], next[idx]];
+      return next;
+    });
+  };
+
+  const removeHeroSlide = (idx: number) => {
+    setProfHeroImages((prev) => prev.filter((_, i) => i !== idx));
+  };
+
   const handleSaveProfile = async (e: FormEvent) => {
     e.preventDefault();
+    const slides = profHeroImages.filter(Boolean);
     await api.updateTenantProfile(tenantId, {
       name: profName.trim(),
       tagline: profTagline.trim(),
@@ -206,9 +240,12 @@ export function TenantAdminPage({ user, onLogout }: TenantAdminPageProps) {
       theme_preset: profPreset,
       primary_color: profColor,
       logo_url: profLogo.trim(),
-      hero_image_url: profHero.trim(),
+      hero_image_url: slides[0] || profHero.trim(),
+      hero_images: slides,
+      hero_transition: profHeroTransition,
+      hero_interval_ms: profHeroInterval,
     });
-    flash("Profil, gambar, dan tema restoran diperbarui.");
+    flash("Profil, slider banner, dan tema restoran diperbarui.");
     await loadOverview();
   };
 
@@ -628,9 +665,119 @@ export function TenantAdminPage({ user, onLogout }: TenantAdminPageProps) {
                 </div>
 
                 <div className="space-y-4 rounded-xl border p-5 lg:col-span-5" style={{ backgroundColor: "var(--surface)", borderColor: "var(--border)" }}>
-                  <h2 className="text-sm font-bold">Gambar &amp; Media Utama</h2>
-                  <ImageUploadField tenantId={tenantId} label="Logo Restoran" value={profLogo} onChange={setProfLogo} aspectClass="h-24" />
-                  <ImageUploadField tenantId={tenantId} label="Foto Banner Utama (Hero)" value={profHero} onChange={setProfHero} aspectClass="h-40" />
+                  <h2 className="text-sm font-bold">Logo &amp; Slider Foto Banner</h2>
+                  <ImageUploadField tenantId={tenantId} label="Logo Restoran" value={profLogo} onChange={setProfLogo} aspectClass="h-20" />
+
+                  <div className="space-y-2.5 border-t pt-4" style={{ borderColor: "var(--border)" }}>
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-semibold">Daftar Foto Banner ({profHeroImages.length}/8)</span>
+                      <span className="text-[11px]" style={{ color: "var(--ink-muted)" }}>
+                        Lebih dari 1 foto otomatis jadi slider
+                      </span>
+                    </div>
+
+                    {profHeroImages.length === 0 ? (
+                      <p className="rounded-lg border border-dashed p-3 text-center text-xs" style={{ borderColor: "var(--border)", color: "var(--ink-muted)" }}>
+                        Belum ada foto banner. Unggah di bawah lalu klik Tambahkan.
+                      </p>
+                    ) : (
+                      <div className="space-y-2">
+                        {profHeroImages.map((src, idx) => (
+                          <div
+                            key={`${src}-${idx}`}
+                            className="flex items-center justify-between gap-2 rounded-lg border p-2"
+                            style={{ borderColor: "var(--border)", backgroundColor: "var(--bg)" }}
+                          >
+                            <div className="flex min-w-0 items-center gap-2.5">
+                              <img src={resolveAssetUrl(src)} alt={`Banner ${idx + 1}`} className="h-11 w-16 shrink-0 rounded object-cover" />
+                              <span className="truncate font-mono text-[11px]" style={{ color: "var(--ink)" }}>
+                                Slide {idx + 1}
+                              </span>
+                            </div>
+                            <div className="flex shrink-0 items-center gap-1">
+                              <button
+                                type="button"
+                                onClick={() => moveHeroSlide(idx, -1)}
+                                disabled={idx === 0}
+                                aria-label="Naikkan urutan"
+                                className="inline-flex h-7 w-7 items-center justify-center rounded border disabled:opacity-35"
+                                style={{ borderColor: "var(--border)" }}
+                              >
+                                <ArrowUp size={12} strokeWidth={2} />
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => moveHeroSlide(idx, 1)}
+                                disabled={idx === profHeroImages.length - 1}
+                                aria-label="Turunkan urutan"
+                                className="inline-flex h-7 w-7 items-center justify-center rounded border disabled:opacity-35"
+                                style={{ borderColor: "var(--border)" }}
+                              >
+                                <ArrowDown size={12} strokeWidth={2} />
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => removeHeroSlide(idx)}
+                                aria-label="Hapus slide"
+                                className="inline-flex h-7 w-7 items-center justify-center rounded border"
+                                style={{ borderColor: "var(--border)", color: "var(--danger)" }}
+                              >
+                                <Trash2 size={12} strokeWidth={1.75} />
+                              </button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    <div className="rounded-lg border p-3" style={{ borderColor: "var(--border)" }}>
+                      <ImageUploadField
+                        tenantId={tenantId}
+                        label="Unggah Foto Banner Baru"
+                        value={newSlideUrl}
+                        onChange={setNewSlideUrl}
+                        aspectClass="h-24"
+                      />
+                      <button
+                        type="button"
+                        onClick={addHeroSlide}
+                        disabled={!newSlideUrl.trim() || profHeroImages.length >= 8}
+                        className="mt-2.5 inline-flex h-9 w-full items-center justify-center gap-1.5 rounded-lg border text-xs font-semibold transition disabled:opacity-45"
+                        style={{ borderColor: "#0B2A57", color: "#0B2A57" }}
+                      >
+                        <Plus size={13} strokeWidth={2} aria-hidden="true" />
+                        Tambahkan ke Slider Banner
+                      </button>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-2.5 pt-1">
+                      <div>
+                        <label className="mb-1 block text-xs font-semibold">Efek Transisi</label>
+                        <select
+                          value={profHeroTransition}
+                          onChange={(e) => setProfHeroTransition(e.target.value as HeroTransition)}
+                          className="resto-field resto-select h-9 w-full pl-2.5 text-xs"
+                        >
+                          <option value="fade">Fade Halus</option>
+                          <option value="slide">Slider Geser</option>
+                          <option value="zoom">Zoom Sinematik</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label className="mb-1 block text-xs font-semibold">Kecepatan Ganti</label>
+                        <select
+                          value={profHeroInterval}
+                          onChange={(e) => setProfHeroInterval(Number(e.target.value))}
+                          className="resto-field resto-select h-9 w-full pl-2.5 text-xs"
+                        >
+                          <option value={3000}>Cepat (3 detik)</option>
+                          <option value={5000}>Normal (5 detik)</option>
+                          <option value={7000}>Santai (7 detik)</option>
+                          <option value={0}>Manual saja</option>
+                        </select>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </form>
             )}

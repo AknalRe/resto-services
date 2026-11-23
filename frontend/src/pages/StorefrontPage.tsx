@@ -129,9 +129,28 @@ export function StorefrontPage({ forcedSlug, previewPreset, isCustomDomain }: St
   const displayStory = previewPreset
     ? PREVIEW_META[previewPreset].sampleStory
     : data.tenant.story || PREVIEW_META[activePreset].sampleStory;
-  const heroImageUrl = previewPreset
-    ? resolveAssetUrl(PREVIEW_META[previewPreset].sampleHero)
-    : resolveAssetUrl(data.tenant.hero_image_url);
+  const heroImages = useMemo(() => {
+    if (previewPreset) {
+      const list = [PREVIEW_META[previewPreset].sampleHero, ...PREVIEW_META[previewPreset].sampleGallery];
+      return Array.from(new Set(list)).map((u) => resolveAssetUrl(u));
+    }
+    if (!data) return [];
+    const fromArray = Array.isArray(data.tenant.hero_images) ? data.tenant.hero_images.filter(Boolean) : [];
+    const list = fromArray.length > 0 ? fromArray : data.tenant.hero_image_url ? [data.tenant.hero_image_url] : [];
+    return list.map((u) => resolveAssetUrl(u));
+  }, [data, previewPreset]);
+
+  const heroTransition = previewPreset
+    ? previewPreset === "bistro" || previewPreset === "street"
+      ? "slide"
+      : previewPreset === "omakase" || previewPreset === "banquet"
+        ? "zoom"
+        : "fade"
+    : data?.tenant.hero_transition || "fade";
+
+  const heroIntervalMs = previewPreset ? 4500 : (data?.tenant.hero_interval_ms ?? 5000);
+
+  const heroImageUrl = heroImages[0] || "";
 
   const templateProps = {
     data,
@@ -141,6 +160,9 @@ export function StorefrontPage({ forcedSlug, previewPreset, isCustomDomain }: St
     displayStory,
     accentColor,
     heroImageUrl,
+    heroImages,
+    heroTransition,
+    heroIntervalMs,
     galleryImages,
     menuPath,
     bestSellers,

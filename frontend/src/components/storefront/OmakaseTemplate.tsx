@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { formatRupiah, resolveAssetUrl } from "../../lib/api";
 import { useScrolledPast } from "../../hooks/useScrolledPast";
+import { HeroBannerSlider } from "./HeroBannerSlider";
 import { ReservationForm } from "../ReservationForm";
 import type { TemplateProps } from "./HeritageTemplate";
 
@@ -22,7 +23,9 @@ export function OmakaseTemplate({
   displayTagline,
   displayStory,
   accentColor,
-  heroImageUrl,
+  heroImages,
+  heroTransition,
+  heroIntervalMs,
   menuPath,
   bestSellers,
   isPreview,
@@ -94,7 +97,13 @@ export function OmakaseTemplate({
       <section id="beranda" className="mx-auto max-w-5xl px-4 pb-16 pt-8 sm:px-6 sm:pt-12">
         <div className="overflow-hidden border bg-[#E8E3D8]" style={{ borderColor: "rgba(24,26,31,0.12)" }}>
           <div className="aspect-[16/10] sm:aspect-[21/10]">
-            {heroImageUrl && <img src={heroImageUrl} alt={displayName} className="h-full w-full object-cover" />}
+            <HeroBannerSlider
+              images={heroImages}
+              alt={displayName}
+              transition={heroTransition}
+              intervalMs={heroIntervalMs}
+              className="h-full w-full"
+            />
           </div>
         </div>
 

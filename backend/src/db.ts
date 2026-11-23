@@ -30,6 +30,9 @@ export async function initDatabase(pool: Pool): Promise<void> {
       primary_color TEXT NOT NULL DEFAULT '#8B1E24',
       logo_url TEXT NOT NULL DEFAULT '',
       hero_image_url TEXT NOT NULL DEFAULT '',
+      hero_images JSONB NOT NULL DEFAULT '[]'::jsonb,
+      hero_transition TEXT NOT NULL DEFAULT 'fade' CHECK(hero_transition IN ('fade', 'slide', 'zoom')),
+      hero_interval_ms INTEGER NOT NULL DEFAULT 5000,
       instagram_url TEXT NOT NULL DEFAULT '',
       facebook_url TEXT NOT NULL DEFAULT '',
       tiktok_url TEXT NOT NULL DEFAULT '',
@@ -142,14 +145,24 @@ async function seedInitialData(pool: Pool): Promise<void> {
     );
   }
 
-  // Ensure CHECK constraint supports all 6 F&B themes on existing databases
+  // Ensure CHECK constraint supports all 6 F&B themes and hero slider columns on existing databases
   await pool.query(`
     ALTER TABLE tenants DROP CONSTRAINT IF EXISTS tenants_theme_preset_check;
     ALTER TABLE tenants ADD CONSTRAINT tenants_theme_preset_check
       CHECK (theme_preset IN ('banquet', 'heritage', 'bistro', 'cafe', 'omakase', 'coastal', 'street'));
+    ALTER TABLE tenants ADD COLUMN IF NOT EXISTS hero_images JSONB NOT NULL DEFAULT '[]'::jsonb;
+    ALTER TABLE tenants ADD COLUMN IF NOT EXISTS hero_transition TEXT NOT NULL DEFAULT 'fade';
+    ALTER TABLE tenants ADD COLUMN IF NOT EXISTS hero_interval_ms INTEGER NOT NULL DEFAULT 5000;
+    ALTER TABLE tenants DROP CONSTRAINT IF EXISTS tenants_hero_transition_check;
+    ALTER TABLE tenants ADD CONSTRAINT tenants_hero_transition_check
+      CHECK (hero_transition IN ('fade', 'slide', 'zoom'));
     UPDATE tenants SET theme_preset = 'banquet' WHERE theme_preset = 'heritage';
     UPDATE tenants SET name = 'Rumah Makan Nusantara' WHERE name = 'Rumah Makan Heritage';
     UPDATE menu_items SET name = 'Ayam Goreng Mentega Spesial' WHERE name = 'Ayam Goreng Mentega Heritage';
+    UPDATE tenants
+      SET hero_images = '["/demo/hero-banquet.jpg","/demo/dish-ayam.jpg","/demo/room-vip.jpg"]'::jsonb
+      WHERE slug IN ('kedai-heritage', 'rumah-makan-nusantara')
+        AND (hero_images IS NULL OR jsonb_array_length(hero_images) = 0);
   `);
 
   // 2. Seed rich demo restaurant tenant if none exists

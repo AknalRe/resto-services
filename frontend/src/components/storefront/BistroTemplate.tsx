@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { formatRupiah, resolveAssetUrl } from "../../lib/api";
 import { useScrolledPast } from "../../hooks/useScrolledPast";
+import { HeroBannerSlider } from "./HeroBannerSlider";
 import { ReservationForm } from "../ReservationForm";
 import type { TemplateProps } from "./HeritageTemplate";
 
@@ -23,7 +24,9 @@ export function BistroTemplate({
   displayTagline,
   displayStory,
   accentColor,
-  heroImageUrl,
+  heroImages,
+  heroTransition,
+  heroIntervalMs,
   galleryImages,
   menuPath,
   bestSellers,
@@ -140,11 +143,16 @@ export function BistroTemplate({
         </div>
 
         <div className="relative aspect-[16/11] overflow-hidden border border-white/10 bg-[#14161A] lg:col-span-7 lg:aspect-auto lg:min-h-[500px]">
-          {heroImageUrl && (
-            <img src={heroImageUrl} alt={displayName} className="h-full w-full object-cover" />
-          )}
-          <div className="absolute inset-0 bg-gradient-to-t from-[#0B0C0E]/80 via-transparent to-transparent" />
-          <div className="absolute bottom-3 left-4 right-4 flex items-center justify-between border-t border-white/20 pt-2.5 font-mono text-[10px] uppercase tracking-[0.18em] text-slate-200">
+          <HeroBannerSlider
+            images={heroImages}
+            alt={displayName}
+            transition={heroTransition}
+            intervalMs={heroIntervalMs}
+            controlsPosition="bottom-right"
+            className="h-full w-full"
+          />
+          <div className="pointer-events-none absolute inset-0 z-[2] bg-gradient-to-t from-[#0B0C0E]/80 via-transparent to-transparent" />
+          <div className="pointer-events-none absolute bottom-3 left-4 right-20 z-[3] flex items-center justify-between border-t border-white/20 pt-2.5 font-mono text-[10px] uppercase tracking-[0.18em] text-slate-200">
             <span>WOOD-FIRED GRILL &amp; KITCHEN</span>
             <span className="truncate">{primaryBranch?.name || "MAIN DINING"}</span>
           </div>

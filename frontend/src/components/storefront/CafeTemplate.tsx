@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { formatRupiah, resolveAssetUrl } from "../../lib/api";
 import { useScrolledPast } from "../../hooks/useScrolledPast";
+import { HeroBannerSlider } from "./HeroBannerSlider";
 import { ReservationForm } from "../ReservationForm";
 import type { TemplateProps } from "./HeritageTemplate";
 
@@ -24,7 +25,9 @@ export function CafeTemplate({
   displayTagline,
   displayStory,
   accentColor,
-  heroImageUrl,
+  heroImages,
+  heroTransition,
+  heroIntervalMs,
   galleryImages,
   menuPath,
   bestSellers,
@@ -138,7 +141,13 @@ export function CafeTemplate({
         {/* Organic 3-Photo Collage */}
         <div className="grid grid-cols-12 gap-2.5 sm:gap-3.5 lg:col-span-6">
           <div className="col-span-7 aspect-[3/4] overflow-hidden rounded-t-[84px] rounded-b-3xl bg-[#E8DEC9] shadow-sm sm:rounded-t-[110px]">
-            {heroImageUrl && <img src={heroImageUrl} alt={displayName} className="h-full w-full object-cover" />}
+            <HeroBannerSlider
+              images={heroImages}
+              alt={displayName}
+              transition={heroTransition}
+              intervalMs={heroIntervalMs}
+              className="h-full w-full"
+            />
           </div>
           <div className="col-span-5 flex flex-col gap-2.5 sm:gap-3.5">
             <div className="aspect-square flex-1 overflow-hidden rounded-2xl bg-[#E8DEC9] shadow-sm sm:rounded-3xl">

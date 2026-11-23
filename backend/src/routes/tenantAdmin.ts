@@ -50,6 +50,9 @@ export function registerTenantAdminRoutes(app: FastifyInstance, pool: Pool): voi
       primary_color?: string;
       logo_url?: string;
       hero_image_url?: string;
+      hero_images?: string[];
+      hero_transition?: "fade" | "slide" | "zoom";
+      hero_interval_ms?: number;
       instagram_url?: string;
       facebook_url?: string;
       tiktok_url?: string;
@@ -59,6 +62,19 @@ export function registerTenantAdminRoutes(app: FastifyInstance, pool: Pool): voi
     if (!(await requireTenantAccess(request, reply, tenantId))) return;
 
     const b = request.body || {};
+    const cleanHeroImages = Array.isArray(b.hero_images)
+      ? b.hero_images.map((u) => String(u || "").trim()).filter(Boolean).slice(0, 8)
+      : null;
+    const primaryHero = cleanHeroImages && cleanHeroImages.length > 0 ? cleanHeroImages[0] : (b.hero_image_url ?? null);
+    const validTransition =
+      b.hero_transition === "fade" || b.hero_transition === "slide" || b.hero_transition === "zoom"
+        ? b.hero_transition
+        : null;
+    const validInterval =
+      typeof b.hero_interval_ms === "number" && Number.isFinite(b.hero_interval_ms)
+        ? Math.max(0, Math.min(15000, Math.round(b.hero_interval_ms)))
+        : null;
+
     const res = await pool.query(
       `UPDATE tenants SET
         name = COALESCE($1, name),
@@ -68,11 +84,14 @@ export function registerTenantAdminRoutes(app: FastifyInstance, pool: Pool): voi
         primary_color = COALESCE($5, primary_color),
         logo_url = COALESCE($6, logo_url),
         hero_image_url = COALESCE($7, hero_image_url),
-        instagram_url = COALESCE($8, instagram_url),
-        facebook_url = COALESCE($9, facebook_url),
-        tiktok_url = COALESCE($10, tiktok_url),
+        hero_images = COALESCE($8::jsonb, hero_images),
+        hero_transition = COALESCE($9, hero_transition),
+        hero_interval_ms = COALESCE($10, hero_interval_ms),
+        instagram_url = COALESCE($11, instagram_url),
+        facebook_url = COALESCE($12, facebook_url),
+        tiktok_url = COALESCE($13, tiktok_url),
         updated_at = NOW()
-       WHERE id = $11
+       WHERE id = $14
        RETURNING *`,
       [
         b.name ?? null,
@@ -81,7 +100,10 @@ export function registerTenantAdminRoutes(app: FastifyInstance, pool: Pool): voi
         b.theme_preset ?? null,
         b.primary_color ?? null,
         b.logo_url ?? null,
-        b.hero_image_url ?? null,
+        primaryHero,
+        cleanHeroImages ? JSON.stringify(cleanHeroImages) : null,
+        validTransition,
+        validInterval,
         b.instagram_url ?? null,
         b.facebook_url ?? null,
         b.tiktok_url ?? null,

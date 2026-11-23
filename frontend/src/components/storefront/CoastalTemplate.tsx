@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { formatRupiah, resolveAssetUrl } from "../../lib/api";
 import { useScrolledPast } from "../../hooks/useScrolledPast";
+import { HeroBannerSlider } from "./HeroBannerSlider";
 import { ReservationForm } from "../ReservationForm";
 import type { TemplateProps } from "./HeritageTemplate";
 
@@ -24,7 +25,9 @@ export function CoastalTemplate({
   displayTagline,
   displayStory,
   accentColor,
-  heroImageUrl,
+  heroImages,
+  heroTransition,
+  heroIntervalMs,
   menuPath,
   bestSellers,
   isPreview,
@@ -122,7 +125,13 @@ export function CoastalTemplate({
           <div className="lg:col-span-7">
             <div className="overflow-hidden rounded-2xl border border-[#0F4C75]/10 bg-white p-2 shadow-sm">
               <div className="aspect-[16/10] overflow-hidden rounded-xl">
-                {heroImageUrl && <img src={heroImageUrl} alt={displayName} className="h-full w-full object-cover" />}
+                <HeroBannerSlider
+                  images={heroImages}
+                  alt={displayName}
+                  transition={heroTransition}
+                  intervalMs={heroIntervalMs}
+                  className="h-full w-full"
+                />
               </div>
             </div>
           </div>

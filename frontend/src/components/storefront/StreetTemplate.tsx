@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { formatRupiah, resolveAssetUrl } from "../../lib/api";
 import { useScrolledPast } from "../../hooks/useScrolledPast";
+import { HeroBannerSlider } from "./HeroBannerSlider";
 import { ReservationForm } from "../ReservationForm";
 import type { TemplateProps } from "./HeritageTemplate";
 
@@ -23,7 +24,9 @@ export function StreetTemplate({
   displayTagline,
   displayStory,
   accentColor,
-  heroImageUrl,
+  heroImages,
+  heroTransition,
+  heroIntervalMs,
   menuPath,
   bestSellers,
   isPreview,
@@ -131,7 +134,13 @@ export function StreetTemplate({
             style={{ boxShadow: "4px 4px 0 #181512" }}
           >
             <div className="aspect-[16/10] h-full w-full">
-              {heroImageUrl && <img src={heroImageUrl} alt={displayName} className="h-full w-full object-cover" />}
+              <HeroBannerSlider
+                images={heroImages}
+                alt={displayName}
+                transition={heroTransition}
+                intervalMs={heroIntervalMs}
+                className="h-full w-full"
+              />
             </div>
           </div>
         </div>
