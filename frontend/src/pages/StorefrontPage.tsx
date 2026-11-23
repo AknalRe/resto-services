@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
-import { api } from "../lib/api";
+import { api, resolveAssetUrl } from "../lib/api";
 import { getStorefrontPaths, PREVIEW_META } from "../lib/storefrontTheme";
 import { HeritageTemplate } from "../components/storefront/HeritageTemplate";
 import { BistroTemplate } from "../components/storefront/BistroTemplate";
@@ -54,12 +54,38 @@ export function StorefrontPage({ forcedSlug, previewPreset, isCustomDomain }: St
       ...available.filter((item) => !item.badge && !item.image_url),
     ];
     const seen = new Set<number>();
-    return prioritized.filter((item) => {
-      if (seen.has(item.id)) return false;
-      seen.add(item.id);
-      return true;
-    }).slice(0, 4);
-  }, [data]);
+    const picked = prioritized
+      .filter((item) => {
+        if (seen.has(item.id)) return false;
+        seen.add(item.id);
+        return true;
+      })
+      .slice(0, 4);
+
+    if (previewPreset && previewPreset !== "heritage") {
+      const sampleImgs = PREVIEW_META[previewPreset].sampleGallery;
+      return picked.map((item, idx) => ({
+        ...item,
+        image_url: sampleImgs[idx % sampleImgs.length] || item.image_url,
+      }));
+    }
+    return picked;
+  }, [data, previewPreset]);
+
+  const galleryImages = useMemo(() => {
+    if (previewPreset) {
+      return PREVIEW_META[previewPreset].sampleGallery.map((url) => resolveAssetUrl(url));
+    }
+    if (!data) return [];
+    const urls = [
+      ...data.menu_items.map((m) => m.image_url),
+      ...data.event_packages.map((e) => e.image_url),
+      data.tenant.hero_image_url,
+    ]
+      .filter(Boolean)
+      .map((u) => resolveAssetUrl(u));
+    return Array.from(new Set(urls)).slice(0, 3);
+  }, [data, previewPreset]);
 
   if (loading) {
     return (
@@ -95,6 +121,9 @@ export function StorefrontPage({ forcedSlug, previewPreset, isCustomDomain }: St
   const displayStory = previewPreset
     ? PREVIEW_META[previewPreset].sampleStory
     : data.tenant.story || PREVIEW_META[activePreset].sampleStory;
+  const heroImageUrl = previewPreset
+    ? resolveAssetUrl(PREVIEW_META[previewPreset].sampleHero)
+    : resolveAssetUrl(data.tenant.hero_image_url);
 
   const templateProps = {
     data,
@@ -103,6 +132,8 @@ export function StorefrontPage({ forcedSlug, previewPreset, isCustomDomain }: St
     displayTagline,
     displayStory,
     accentColor,
+    heroImageUrl,
+    galleryImages,
     menuPath,
     bestSellers,
     isPreview: Boolean(previewPreset),
@@ -112,17 +143,17 @@ export function StorefrontPage({ forcedSlug, previewPreset, isCustomDomain }: St
     <>
       {/* Preview switcher bar ONLY on /preview/:preset (never shown to real customers on /r/:slug or custom domains) */}
       {previewPreset && (
-        <div className="border-b px-4 py-2 text-xs text-white" style={{ backgroundColor: "#0B2A57", borderColor: "rgba(255,255,255,0.15)" }}>
-          <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-2">
-            <div className="flex flex-wrap items-center gap-2">
-              <span className="opacity-80">Contoh Tema:</span>
+        <div className="border-b px-3 py-2 text-xs text-white sm:px-4" style={{ backgroundColor: "#0B2A57", borderColor: "rgba(255,255,255,0.15)" }}>
+          <div className="mx-auto flex max-w-6xl items-center justify-between gap-2 overflow-x-auto whitespace-nowrap">
+            <div className="flex items-center gap-1.5 sm:gap-2">
+              <span className="hidden opacity-80 sm:inline">Contoh Tema:</span>
               {(["heritage", "bistro", "cafe"] as ThemePreset[]).map((p) => (
                 <Link
                   key={p}
                   to={`/preview/${p}`}
                   className="rounded px-2.5 py-1 text-[11px] font-semibold no-underline transition"
                   style={{
-                    backgroundColor: previewPreset === p ? "#FFFFFF" : "rgba(255,255,255,0.12)",
+                    backgroundColor: previewPreset === p ? "#FFFFFF" : "rgba(255,255,255,0.14)",
                     color: previewPreset === p ? "#0B2A57" : "#FFFFFF",
                   }}
                 >
@@ -130,9 +161,10 @@ export function StorefrontPage({ forcedSlug, previewPreset, isCustomDomain }: St
                 </Link>
               ))}
             </div>
-            <Link to="/" className="inline-flex items-center gap-1 font-semibold text-amber-300 no-underline hover:underline">
+            <Link to="/" className="inline-flex shrink-0 items-center gap-1 font-semibold text-amber-300 no-underline hover:underline">
               <ArrowLeft size={12} strokeWidth={2} aria-hidden="true" />
-              Beranda Reneo Resto
+              <span className="hidden sm:inline">Beranda Reneo Resto</span>
+              <span className="sm:hidden">Kembali</span>
             </Link>
           </div>
         </div>

@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useState, type FormEvent } from "react";
 import { Link, useParams } from "react-router-dom";
-import { ArrowLeft, Check, ExternalLink, LogOut, Plus, Trash2 } from "lucide-react";
+import { ArrowLeft, BookOpen, Check, ExternalLink, LogOut, Pencil, Plus, Trash2, X } from "lucide-react";
 import { api, formatRupiah, resolveAssetUrl } from "../lib/api";
-import type { AuthUser, TenantOverviewPayload, ThemePreset } from "../types";
+import type { AuthUser, MenuItem, TenantOverviewPayload, ThemePreset } from "../types";
 import { ImageUploadField } from "../components/ImageUploadField";
 
 interface TenantAdminPageProps {
@@ -28,6 +28,7 @@ export function TenantAdminPage({ user, onLogout }: TenantAdminPageProps) {
 
   // Forms
   const [catName, setCatName] = useState("");
+  const [editingItemId, setEditingItemId] = useState<number | null>(null);
   const [itemName, setItemName] = useState("");
   const [itemPrice, setItemPrice] = useState("45000");
   const [itemCat, setItemCat] = useState("");
@@ -97,23 +98,45 @@ export function TenantAdminPage({ user, onLogout }: TenantAdminPageProps) {
     await loadOverview();
   };
 
-  const handleAddMenuItem = async (e: FormEvent) => {
+  const resetMenuForm = () => {
+    setEditingItemId(null);
+    setItemName("");
+    setItemPrice("45000");
+    setItemDesc("");
+    setItemBadge("");
+    setItemImage("");
+  };
+
+  const startEditMenuItem = (item: MenuItem) => {
+    setEditingItemId(item.id);
+    setItemName(item.name);
+    setItemPrice(String(item.price));
+    setItemCat(item.category_id ? String(item.category_id) : "");
+    setItemDesc(item.description || "");
+    setItemBadge(item.badge || "");
+    setItemImage(item.image_url || "");
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  const handleSaveMenuItem = async (e: FormEvent) => {
     e.preventDefault();
     if (!itemName.trim()) return;
-    await api.createMenuItem(tenantId, {
+    const payload = {
       name: itemName.trim(),
       price: Number(itemPrice) || 0,
       category_id: itemCat ? Number(itemCat) : null,
       description: itemDesc.trim(),
       badge: itemBadge.trim(),
       image_url: itemImage.trim(),
-      is_available: true,
-    });
-    setItemName("");
-    setItemDesc("");
-    setItemBadge("");
-    setItemImage("");
-    flash("Menu baru disimpan.");
+    };
+    if (editingItemId) {
+      await api.updateMenuItem(tenantId, editingItemId, payload);
+      flash("Perubahan menu disimpan.");
+    } else {
+      await api.createMenuItem(tenantId, { ...payload, is_available: true });
+      flash("Menu baru disimpan.");
+    }
+    resetMenuForm();
     await loadOverview();
   };
 
@@ -207,16 +230,28 @@ export function TenantAdminPage({ user, onLogout }: TenantAdminPageProps) {
             </div>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             {data && (
-              <Link
-                to={`/r/${data.tenant.slug}`}
-                className="inline-flex h-8 items-center gap-1.5 rounded-lg border px-3 text-xs font-semibold no-underline"
-                style={{ borderColor: "var(--border)", color: "var(--ink)" }}
-              >
-                Lihat Website
-                <ExternalLink size={12} strokeWidth={1.75} aria-hidden="true" />
-              </Link>
+              <>
+                <Link
+                  to={`/r/${data.tenant.slug}`}
+                  className="inline-flex h-8 items-center gap-1.5 rounded-lg border px-2.5 text-xs font-semibold no-underline sm:px-3"
+                  style={{ borderColor: "var(--border)", color: "var(--ink)" }}
+                >
+                  <span className="hidden sm:inline">Lihat Website</span>
+                  <span className="sm:hidden">Web</span>
+                  <ExternalLink size={12} strokeWidth={1.75} aria-hidden="true" />
+                </Link>
+                <Link
+                  to={`/r/${data.tenant.slug}/menu`}
+                  className="inline-flex h-8 items-center gap-1.5 rounded-lg border px-2.5 text-xs font-semibold no-underline sm:px-3"
+                  style={{ borderColor: "var(--border)", color: "var(--ink)" }}
+                >
+                  <BookOpen size={12} strokeWidth={1.75} aria-hidden="true" />
+                  <span className="hidden sm:inline">Buku Menu</span>
+                  <span className="sm:hidden">Menu</span>
+                </Link>
+              </>
             )}
             <button
               type="button"
@@ -225,14 +260,14 @@ export function TenantAdminPage({ user, onLogout }: TenantAdminPageProps) {
               style={{ borderColor: "var(--border)", color: "var(--danger)" }}
             >
               <LogOut size={13} strokeWidth={1.75} aria-hidden="true" />
-              Keluar
+              <span className="hidden sm:inline">Keluar</span>
             </button>
           </div>
         </div>
       </header>
 
       <main className="mx-auto max-w-6xl px-4 py-6 sm:px-6">
-        <div className="flex flex-wrap gap-1.5 border-b pb-3" style={{ borderColor: "var(--border)" }}>
+        <div className="flex gap-1.5 overflow-x-auto border-b pb-3" style={{ borderColor: "var(--border)" }}>
           {(
             [
               { id: "menu", label: `Menu (${data?.menu_items.length ?? 0})` },
@@ -247,7 +282,7 @@ export function TenantAdminPage({ user, onLogout }: TenantAdminPageProps) {
               key={t.id}
               type="button"
               onClick={() => setTab(t.id)}
-              className="h-8 rounded-lg px-3 text-xs font-semibold transition-colors"
+              className="h-9 shrink-0 rounded-lg px-3 text-xs font-semibold transition-colors"
               style={{
                 backgroundColor: tab === t.id ? "#0B2A57" : "var(--surface)",
                 color: tab === t.id ? "#ffffff" : "var(--ink-body)",
@@ -280,8 +315,23 @@ export function TenantAdminPage({ user, onLogout }: TenantAdminPageProps) {
             {tab === "menu" && (
               <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
                 <div className="space-y-4 lg:col-span-4">
-                  <form onSubmit={(e) => void handleAddMenuItem(e)} className="space-y-3 rounded-xl border p-4" style={{ backgroundColor: "var(--surface)", borderColor: "var(--border)" }}>
-                    <h2 className="text-sm font-bold" style={{ color: "var(--ink)" }}>Tambah Hidangan</h2>
+                  <form onSubmit={(e) => void handleSaveMenuItem(e)} className="space-y-3 rounded-xl border p-4" style={{ backgroundColor: "var(--surface)", borderColor: "var(--border)" }}>
+                    <div className="flex items-center justify-between gap-2">
+                      <h2 className="text-sm font-bold" style={{ color: "var(--ink)" }}>
+                        {editingItemId ? "Edit Hidangan" : "Tambah Hidangan"}
+                      </h2>
+                      {editingItemId && (
+                        <button
+                          type="button"
+                          onClick={resetMenuForm}
+                          className="inline-flex items-center gap-1 text-xs font-semibold"
+                          style={{ color: "var(--ink-muted)" }}
+                        >
+                          <X size={13} strokeWidth={2} aria-hidden="true" />
+                          Batal
+                        </button>
+                      )}
+                    </div>
                     <input type="text" required value={itemName} onChange={(e) => setItemName(e.target.value)} placeholder="Nama menu" className="resto-field h-9 w-full px-3 text-sm" />
                     <div className="grid grid-cols-2 gap-2">
                       <input type="number" required value={itemPrice} onChange={(e) => setItemPrice(e.target.value)} placeholder="Harga (Rp)" className="resto-field h-9 w-full px-3 text-sm font-mono" />
@@ -292,12 +342,17 @@ export function TenantAdminPage({ user, onLogout }: TenantAdminPageProps) {
                         ))}
                       </select>
                     </div>
-                    <input type="text" value={itemBadge} onChange={(e) => setItemBadge(e.target.value)} placeholder="Label opsional (Terlaris / Baru)" className="resto-field h-9 w-full px-3 text-xs" />
+                    <div>
+                      <input type="text" value={itemBadge} onChange={(e) => setItemBadge(e.target.value)} placeholder="Label (mis: Terlaris / Rekomendasi)" className="resto-field h-9 w-full px-3 text-xs" />
+                      <p className="mt-1 text-[11px]" style={{ color: "var(--ink-muted)" }}>
+                        Menu berlabel diprioritaskan tampil di halaman depan sebagai Rekomendasi/Terlaris.
+                      </p>
+                    </div>
                     <textarea rows={2} value={itemDesc} onChange={(e) => setItemDesc(e.target.value)} placeholder="Deskripsi singkat hidangan" className="resto-field w-full p-2.5 text-xs" />
                     <ImageUploadField tenantId={tenantId} label="Foto Hidangan" value={itemImage} onChange={setItemImage} aspectClass="h-24" />
                     <button type="submit" className="inline-flex h-9 w-full items-center justify-center gap-1.5 rounded-lg text-xs font-semibold text-white" style={{ backgroundColor: "#0B2A57" }}>
-                      <Plus size={14} strokeWidth={2} aria-hidden="true" />
-                      Simpan Menu
+                      {editingItemId ? <Check size={14} strokeWidth={2} aria-hidden="true" /> : <Plus size={14} strokeWidth={2} aria-hidden="true" />}
+                      {editingItemId ? "Simpan Perubahan" : "Simpan Menu"}
                     </button>
                   </form>
 
@@ -333,6 +388,16 @@ export function TenantAdminPage({ user, onLogout }: TenantAdminPageProps) {
                           </div>
                         </div>
                         <div className="flex items-center gap-2">
+                          <button
+                            type="button"
+                            onClick={() => startEditMenuItem(item)}
+                            aria-label={`Edit ${item.name}`}
+                            className="inline-flex h-7 items-center gap-1 rounded-md border px-2 text-xs font-semibold"
+                            style={{ borderColor: "var(--border)", color: "var(--ink)" }}
+                          >
+                            <Pencil size={11} strokeWidth={1.75} aria-hidden="true" />
+                            Edit
+                          </button>
                           <button
                             type="button"
                             onClick={() => void handleToggleAvailable(item.id, item.is_available)}

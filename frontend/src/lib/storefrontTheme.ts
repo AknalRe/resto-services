@@ -9,6 +9,8 @@ export const PREVIEW_META: Record<
     sampleTitle: string;
     sampleTagline: string;
     sampleStory: string;
+    sampleHero: string;
+    sampleGallery: string[];
   }
 > = {
   heritage: {
@@ -19,6 +21,8 @@ export const PREVIEW_META: Record<
     sampleTagline: "Sajian Klasik Keluarga, Dimasak Segar dari Dapur Kami Setiap Hari",
     sampleStory:
       "Ruang makan luas dengan meja bundar dan ruang VIP privat untuk syukuran keluarga, jamuan rekan kerja, hingga perayaan istimewa.",
+    sampleHero: "/demo/hero-heritage.jpg",
+    sampleGallery: ["/demo/dish-ayam.jpg", "/demo/dish-gurame.jpg", "/demo/room-vip.jpg"],
   },
   bistro: {
     label: "Modern Bistro & Grill",
@@ -28,6 +32,8 @@ export const PREVIEW_META: Record<
     sampleTagline: "Api Arang, Rempah Pilihan, dan Meja Hangat untuk Makan Malam Berkesan",
     sampleStory:
       "Dapur terbuka dengan panggangan arang, menu musiman yang tajam, dan ruang makan malam berkarakter di tengah kota.",
+    sampleHero: "/demo/hero-bistro.jpg",
+    sampleGallery: ["/demo/dish-steak.jpg", "/demo/hero-bistro.jpg", "/demo/room-vip.jpg"],
   },
   cafe: {
     label: "Artisan Cafe & Kitchen",
@@ -37,6 +43,8 @@ export const PREVIEW_META: Record<
     sampleTagline: "Hidangan Hangat, Kopi Seduh Segar, dan Ruang Santai Sepanjang Hari",
     sampleStory:
       "Tempat nyaman untuk sarapan santai, kerja ringan sambil menyeduh kopi, dan makan siang hangat bersama teman.",
+    sampleHero: "/demo/hero-cafe.jpg",
+    sampleGallery: ["/demo/dish-brunch.jpg", "/demo/hero-cafe.jpg", "/demo/dish-ayam.jpg"],
   },
 };
 

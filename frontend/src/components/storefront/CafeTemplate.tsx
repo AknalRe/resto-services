@@ -3,11 +3,14 @@ import { Link } from "react-router-dom";
 import {
   ArrowRight,
   BookOpen,
+  Calendar,
   Clock,
   Coffee,
   ExternalLink,
   MapPin,
+  Menu,
   Users,
+  X,
 } from "lucide-react";
 import { formatRupiah, resolveAssetUrl } from "../../lib/api";
 import { ReservationForm } from "../ReservationForm";
@@ -20,18 +23,20 @@ export function CafeTemplate({
   displayTagline,
   displayStory,
   accentColor,
+  heroImageUrl,
+  galleryImages,
   menuPath,
   bestSellers,
   isPreview,
 }: TemplateProps) {
   const [selectedEvent, setSelectedEvent] = useState("Kumpul Santai / Arisan");
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const { tenant, branches, promos, event_packages, menu_items } = data;
   const primaryBranch = branches[0];
-  const heroSrc = resolveAssetUrl(tenant.hero_image_url);
   const logoSrc = resolveAssetUrl(tenant.logo_url);
 
-  const collagePhotoA = bestSellers[0]?.image_url ? resolveAssetUrl(bestSellers[0].image_url) : "";
-  const collagePhotoB = bestSellers[1]?.image_url ? resolveAssetUrl(bestSellers[1].image_url) : "";
+  const collagePhotoA = galleryImages[0] || (bestSellers[0]?.image_url ? resolveAssetUrl(bestSellers[0].image_url) : "");
+  const collagePhotoB = galleryImages[2] || galleryImages[1] || (bestSellers[1]?.image_url ? resolveAssetUrl(bestSellers[1].image_url) : "");
 
   const pickEvent = (title: string) => {
     setSelectedEvent(title);
@@ -39,22 +44,22 @@ export function CafeTemplate({
   };
 
   return (
-    <div className="min-h-screen" style={{ backgroundColor: "#F8F4EC", color: "#2E2219" }}>
+    <div className="min-h-screen overflow-x-hidden pb-20 md:pb-0" style={{ backgroundColor: "#F8F4EC", color: "#2E2219" }}>
       {/* Floating Pill Navbar */}
-      <div className="sticky top-3 z-30 mx-auto max-w-5xl px-4">
+      <div className="sticky top-2.5 z-30 mx-auto max-w-5xl px-3 sm:top-3 sm:px-4">
         <header
-          className="flex items-center justify-between gap-3 rounded-full border bg-white/92 px-4 py-2.5 shadow-sm backdrop-blur-md sm:px-5"
+          className="flex items-center justify-between gap-2 rounded-full border bg-white/94 px-3.5 py-2 shadow-sm backdrop-blur-md sm:px-5 sm:py-2.5"
           style={{ borderColor: "rgba(46,34,25,0.1)" }}
         >
-          <a href="#beranda" className="flex items-center gap-2.5 no-underline">
+          <a href="#beranda" className="flex min-w-0 items-center gap-2 no-underline">
             {logoSrc && !isPreview ? (
-              <img src={logoSrc} alt={displayName} className="h-8 w-8 rounded-full object-cover" />
+              <img src={logoSrc} alt={displayName} className="h-8 w-8 shrink-0 rounded-full object-cover" />
             ) : (
-              <span className="flex h-8 w-8 items-center justify-center rounded-full text-white" style={{ backgroundColor: accentColor }}>
+              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-white" style={{ backgroundColor: accentColor }}>
                 <Coffee size={15} strokeWidth={1.75} aria-hidden="true" />
               </span>
             )}
-            <span className="font-display text-xl font-bold text-[#2E2219]">{displayName}</span>
+            <span className="truncate font-display text-lg font-bold text-[#2E2219] sm:text-xl">{displayName}</span>
           </a>
 
           <nav className="hidden items-center gap-6 text-xs font-semibold text-[#5C4B3E] md:flex">
@@ -63,19 +68,46 @@ export function CafeTemplate({
             <a href="#cabang" className="no-underline hover:text-[#2E2219]">Kedai Kami</a>
           </nav>
 
-          <Link
-            to={menuPath}
-            className="inline-flex h-9 items-center gap-1.5 rounded-full px-4 text-xs font-semibold text-white no-underline transition hover:opacity-90"
-            style={{ backgroundColor: accentColor }}
-          >
-            <BookOpen size={13} strokeWidth={1.75} aria-hidden="true" />
-            Buku Menu
-          </Link>
+          <div className="flex shrink-0 items-center gap-1.5">
+            <Link
+              to={menuPath}
+              className="hidden h-9 items-center gap-1.5 rounded-full px-4 text-xs font-semibold text-white no-underline transition hover:opacity-90 md:inline-flex"
+              style={{ backgroundColor: accentColor }}
+            >
+              <BookOpen size={13} strokeWidth={1.75} aria-hidden="true" />
+              Buku Menu
+            </Link>
+            <button
+              type="button"
+              onClick={() => setMobileNavOpen((v) => !v)}
+              aria-label="Menu navigasi"
+              className="inline-flex h-9 w-9 items-center justify-center rounded-full border md:hidden"
+              style={{ borderColor: "rgba(46,34,25,0.16)", color: "#2E2219" }}
+            >
+              {mobileNavOpen ? <X size={16} strokeWidth={1.75} /> : <Menu size={16} strokeWidth={1.75} />}
+            </button>
+          </div>
         </header>
+
+        {mobileNavOpen && (
+          <div className="mt-2 rounded-3xl border bg-white p-3 shadow-md md:hidden" style={{ borderColor: "rgba(46,34,25,0.1)" }}>
+            <nav className="flex flex-col gap-1 text-sm font-semibold text-[#2E2219]">
+              <a href="#terlaris" onClick={() => setMobileNavOpen(false)} className="rounded-2xl px-3.5 py-2.5 no-underline hover:bg-[#F8F4EC]">
+                Favorit Minggu Ini
+              </a>
+              <Link to={menuPath} onClick={() => setMobileNavOpen(false)} className="rounded-2xl px-3.5 py-2.5 no-underline hover:bg-[#F8F4EC]">
+                Buku Menu Lengkap
+              </Link>
+              <a href="#cabang" onClick={() => setMobileNavOpen(false)} className="rounded-2xl px-3.5 py-2.5 no-underline hover:bg-[#F8F4EC]">
+                Lokasi &amp; Pesan Meja
+              </a>
+            </nav>
+          </div>
+        )}
       </div>
 
-      {/* Bright Magazine Hero with Rounded Photo Collage */}
-      <section id="beranda" className="mx-auto grid max-w-6xl items-center gap-10 px-4 pb-16 pt-12 sm:px-6 lg:grid-cols-12 lg:py-16">
+      {/* Bright Magazine Hero with Organic 3-Photo Collage */}
+      <section id="beranda" className="mx-auto grid max-w-6xl items-center gap-8 px-4 pb-12 pt-8 sm:px-6 sm:pt-12 lg:grid-cols-12 lg:gap-10 lg:py-16">
         <div className="lg:col-span-6">
           {primaryBranch && (
             <span
@@ -86,16 +118,16 @@ export function CafeTemplate({
               Buka Hari Ini · {primaryBranch.open_hours}
             </span>
           )}
-          <h1 className="mt-4 font-display text-5xl font-bold leading-[1.06] tracking-tight sm:text-6xl">
+          <h1 className="mt-4 font-display text-4xl font-bold leading-[1.06] tracking-tight sm:text-6xl">
             {displayName}
           </h1>
-          <p className="mt-4 text-base leading-relaxed text-[#5C4B3E]">{displayTagline}</p>
-          <p className="mt-2.5 text-sm leading-relaxed text-[#7D6959]">{displayStory}</p>
+          <p className="mt-3.5 text-sm leading-relaxed text-[#5C4B3E] sm:mt-4 sm:text-base">{displayTagline}</p>
+          <p className="mt-2 text-xs leading-relaxed text-[#7D6959] sm:text-sm">{displayStory}</p>
 
-          <div className="mt-7 flex flex-wrap items-center gap-3">
+          <div className="mt-6 flex flex-col gap-2.5 sm:mt-7 sm:flex-row sm:items-center sm:gap-3">
             <Link
               to={menuPath}
-              className="inline-flex h-11 items-center gap-2 rounded-full px-6 text-xs font-semibold text-white no-underline transition hover:opacity-90"
+              className="inline-flex h-11 items-center justify-center gap-2 rounded-full px-6 text-xs font-semibold text-white no-underline transition hover:opacity-90"
               style={{ backgroundColor: accentColor }}
             >
               Lihat Buku Menu
@@ -103,7 +135,7 @@ export function CafeTemplate({
             </Link>
             <a
               href="#reservasi"
-              className="inline-flex h-11 items-center gap-2 rounded-full border bg-white px-6 text-xs font-semibold text-[#2E2219] no-underline transition hover:bg-[#F1E9DC]"
+              className="inline-flex h-11 items-center justify-center gap-2 rounded-full border bg-white px-6 text-xs font-semibold text-[#2E2219] no-underline transition hover:bg-[#F1E9DC]"
               style={{ borderColor: "rgba(46,34,25,0.16)" }}
             >
               Pesan Meja Santai
@@ -112,15 +144,15 @@ export function CafeTemplate({
         </div>
 
         {/* Organic 3-Photo Collage */}
-        <div className="grid grid-cols-12 gap-3.5 lg:col-span-6">
-          <div className="col-span-7 aspect-[3/4] overflow-hidden rounded-t-[110px] rounded-b-3xl bg-[#E8DEC9] shadow-sm">
-            {heroSrc && <img src={heroSrc} alt={displayName} className="h-full w-full object-cover" />}
+        <div className="grid grid-cols-12 gap-2.5 sm:gap-3.5 lg:col-span-6">
+          <div className="col-span-7 aspect-[3/4] overflow-hidden rounded-t-[84px] rounded-b-3xl bg-[#E8DEC9] shadow-sm sm:rounded-t-[110px]">
+            {heroImageUrl && <img src={heroImageUrl} alt={displayName} className="h-full w-full object-cover" />}
           </div>
-          <div className="col-span-5 flex flex-col gap-3.5">
-            <div className="aspect-square flex-1 overflow-hidden rounded-3xl bg-[#E8DEC9] shadow-sm">
+          <div className="col-span-5 flex flex-col gap-2.5 sm:gap-3.5">
+            <div className="aspect-square flex-1 overflow-hidden rounded-2xl bg-[#E8DEC9] shadow-sm sm:rounded-3xl">
               {collagePhotoA && <img src={collagePhotoA} alt="Menu favorit" className="h-full w-full object-cover" />}
             </div>
-            <div className="aspect-square flex-1 overflow-hidden rounded-3xl bg-[#E8DEC9] shadow-sm">
+            <div className="aspect-square flex-1 overflow-hidden rounded-2xl bg-[#E8DEC9] shadow-sm sm:rounded-3xl">
               {collagePhotoB && <img src={collagePhotoB} alt="Sajian hangat" className="h-full w-full object-cover" />}
             </div>
           </div>
@@ -128,13 +160,13 @@ export function CafeTemplate({
       </section>
 
       {/* Lookbook / Polaroid Best-Sellers Grid */}
-      <section id="terlaris" className="mx-auto max-w-6xl px-4 py-12 sm:px-6">
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+      <section id="terlaris" className="mx-auto max-w-6xl px-4 py-10 sm:px-6 sm:py-12">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.18em]" style={{ color: accentColor }}>
               Rekomendasi &amp; Terlaris
             </p>
-            <h2 className="mt-1.5 font-display text-4xl font-bold">Favorit Tamu Minggu Ini</h2>
+            <h2 className="mt-1 font-display text-3xl font-bold sm:text-4xl">Favorit Tamu Minggu Ini</h2>
           </div>
           <Link
             to={menuPath}
@@ -146,14 +178,14 @@ export function CafeTemplate({
           </Link>
         </div>
 
-        <div className="mt-7 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="mt-6 grid grid-cols-1 gap-4 sm:mt-7 sm:grid-cols-2 sm:gap-5 lg:grid-cols-4">
           {bestSellers.slice(0, 4).map((dish) => (
             <article
               key={dish.id}
               className="flex flex-col rounded-3xl border bg-white p-3 shadow-sm transition hover:shadow-md"
               style={{ borderColor: "rgba(46,34,25,0.08)" }}
             >
-              <div className="relative aspect-square overflow-hidden rounded-2xl bg-[#F0E7D8]">
+              <div className="relative aspect-[16/11] overflow-hidden rounded-2xl bg-[#F0E7D8] sm:aspect-square">
                 {dish.image_url ? (
                   <img src={resolveAssetUrl(dish.image_url)} alt={dish.name} className="h-full w-full object-cover" loading="lazy" />
                 ) : (
@@ -185,10 +217,10 @@ export function CafeTemplate({
           ))}
         </div>
 
-        <div className="mt-9 text-center">
+        <div className="mt-8 text-center sm:mt-9">
           <Link
             to={menuPath}
-            className="inline-flex h-11 items-center gap-2 rounded-full px-7 text-xs font-semibold text-white no-underline transition hover:opacity-90"
+            className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-full px-7 text-xs font-semibold text-white no-underline transition hover:opacity-90 sm:w-auto"
             style={{ backgroundColor: accentColor }}
           >
             <BookOpen size={14} strokeWidth={1.75} aria-hidden="true" />
@@ -199,10 +231,10 @@ export function CafeTemplate({
 
       {/* Cozy Promos & Gathering Strip */}
       {(promos.length > 0 || event_packages.length > 0) && (
-        <section className="mx-auto max-w-6xl px-4 py-10 sm:px-6">
-          <div className="grid gap-5 md:grid-cols-2">
+        <section className="mx-auto max-w-6xl px-4 py-8 sm:px-6 sm:py-10">
+          <div className="grid gap-4 md:grid-cols-2 md:gap-5">
             {promos.map((promo) => (
-              <div key={promo.id} className="rounded-3xl p-7" style={{ backgroundColor: "#EFE5D6" }}>
+              <div key={promo.id} className="rounded-3xl p-6 sm:p-7" style={{ backgroundColor: "#EFE5D6" }}>
                 <span className="rounded-full bg-white px-3 py-1 text-[10px] font-semibold" style={{ color: accentColor }}>
                   Promo Kedai {promo.end_date ? `· s/d ${promo.end_date}` : ""}
                 </span>
@@ -211,7 +243,7 @@ export function CafeTemplate({
               </div>
             ))}
             {event_packages.map((pkg) => (
-              <div key={pkg.id} className="flex flex-col justify-between rounded-3xl border bg-white p-7" style={{ borderColor: "rgba(46,34,25,0.1)" }}>
+              <div key={pkg.id} className="flex flex-col justify-between rounded-3xl border bg-white p-6 sm:p-7" style={{ borderColor: "rgba(46,34,25,0.1)" }}>
                 <div>
                   <span className="inline-flex items-center gap-1 rounded-full bg-[#F8F4EC] px-3 py-1 text-[10px] font-semibold text-[#5C4B3E]">
                     <Users size={11} strokeWidth={1.75} />
@@ -220,14 +252,14 @@ export function CafeTemplate({
                   <h3 className="mt-3 font-display text-2xl font-bold">{pkg.title}</h3>
                   <p className="mt-1.5 text-xs leading-relaxed text-[#5C4B3E]">{pkg.description}</p>
                 </div>
-                <div className="mt-5 flex items-center justify-between">
+                <div className="mt-5 flex flex-wrap items-center justify-between gap-3">
                   <span className="font-mono text-sm font-bold" style={{ color: accentColor }}>
                     {pkg.price_label}
                   </span>
                   <button
                     type="button"
                     onClick={() => pickEvent(pkg.title)}
-                    className="rounded-full px-4 py-2 text-xs font-semibold text-white"
+                    className="h-10 rounded-full px-4 text-xs font-semibold text-white"
                     style={{ backgroundColor: accentColor }}
                   >
                     Tanya Jadwal
@@ -240,13 +272,13 @@ export function CafeTemplate({
       )}
 
       {/* Branches + Cozy Reservation */}
-      <section id="cabang" className="mx-auto max-w-6xl px-4 pb-20 pt-10 sm:px-6">
+      <section id="cabang" className="mx-auto max-w-6xl px-4 pb-16 pt-8 sm:px-6 sm:pb-20">
         <div id="reservasi" className="grid gap-8 lg:grid-cols-12">
           <div className="space-y-4 lg:col-span-5">
             <p className="text-xs font-semibold uppercase tracking-[0.18em]" style={{ color: accentColor }}>
               Mampir ke Kedai
             </p>
-            <h2 className="font-display text-4xl font-bold">Lokasi &amp; Jam Buka</h2>
+            <h2 className="font-display text-3xl font-bold sm:text-4xl">Lokasi &amp; Jam Buka</h2>
             <div className="space-y-3 pt-1">
               {branches.map((b) => (
                 <div key={b.id} className="rounded-3xl border bg-white p-5" style={{ borderColor: "rgba(46,34,25,0.09)" }}>
@@ -276,7 +308,7 @@ export function CafeTemplate({
             </div>
           </div>
 
-          <div className="rounded-3xl border bg-white p-6 shadow-sm sm:p-8 lg:col-span-7" style={{ borderColor: "rgba(46,34,25,0.09)" }}>
+          <div className="rounded-3xl border bg-white p-5 shadow-sm sm:p-8 lg:col-span-7" style={{ borderColor: "rgba(46,34,25,0.09)" }}>
             <h3 className="font-display text-3xl font-bold">Pesan Meja Lebih Awal</h3>
             <p className="mt-1 text-xs text-[#5C4B3E]">
               Mau kumpul santai, kerja bareng, atau arisan? Pilih tanggal dan konfirmasi langsung ke WhatsApp kami.
@@ -296,8 +328,28 @@ export function CafeTemplate({
 
       <footer className="border-t py-8 text-center text-xs text-[#7D6959]" style={{ borderColor: "rgba(46,34,25,0.1)" }}>
         <p className="font-display text-lg font-bold text-[#2E2219]">{displayName}</p>
-        <p className="mt-0.5">{displayTagline}</p>
+        <p className="mt-0.5 px-4">{displayTagline}</p>
       </footer>
+
+      {/* Mobile Sticky Bottom Action Bar */}
+      <div className="fixed inset-x-0 bottom-0 z-40 grid grid-cols-2 gap-2 border-t bg-white/95 p-2.5 backdrop-blur-md md:hidden" style={{ borderColor: "rgba(46,34,25,0.1)" }}>
+        <Link
+          to={menuPath}
+          className="inline-flex h-11 items-center justify-center gap-1.5 rounded-full border text-xs font-semibold no-underline"
+          style={{ borderColor: accentColor, color: accentColor }}
+        >
+          <BookOpen size={14} strokeWidth={1.75} aria-hidden="true" />
+          Buku Menu
+        </Link>
+        <a
+          href="#reservasi"
+          className="inline-flex h-11 items-center justify-center gap-1.5 rounded-full text-xs font-semibold text-white no-underline"
+          style={{ backgroundColor: accentColor }}
+        >
+          <Calendar size={14} strokeWidth={1.75} aria-hidden="true" />
+          Pesan Meja
+        </a>
+      </div>
     </div>
   );
 }

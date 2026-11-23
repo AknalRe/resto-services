@@ -42,8 +42,8 @@ const TEMPLATE_SHOWCASE: ReadonlyArray<{
     vibe: "Gelap, Kontras & Editorial",
     summary:
       "Nuansa charcoal dan tembaga yang menonjolkan warna makanan, papan menu modern berjarak lega, dan formulir reservasi meja cepat.",
-    image: "/demo/dish-ayam.jpg",
-    accent: "#C87D32",
+    image: "/demo/hero-bistro.jpg",
+    accent: "#D97736",
     bestFor: "Steakhouse, bistro modern, bar & grill, restoran fine casual",
   },
   {
@@ -52,8 +52,8 @@ const TEMPLATE_SHOWCASE: ReadonlyArray<{
     vibe: "Krem Hangat & Santai",
     summary:
       "Tampilan cerah bernuansa kopi dan roti hangat, tab kategori cepat di layar ponsel, serta kartu menu bergambar yang ringan digulir.",
-    image: "/demo/dish-gurame.jpg",
-    accent: "#9A4A24",
+    image: "/demo/hero-cafe.jpg",
+    accent: "#2F483E",
     bestFor: "Kedai kopi, bakery, brunch cafe, kedai makan harian",
   },
 ];

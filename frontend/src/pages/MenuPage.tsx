@@ -236,12 +236,12 @@ export function MenuPage({ forcedSlug, previewPreset, isCustomDomain }: MenuPage
         )}
 
         {/* Filter & Search Toolbar */}
-        <div className="mt-8 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-          <div className="flex flex-wrap items-center gap-2">
+        <div className="mt-7 flex flex-col gap-3 md:mt-8 md:flex-row md:items-center md:justify-between">
+          <div className="flex items-center gap-2 overflow-x-auto pb-1 whitespace-nowrap">
             <button
               type="button"
               onClick={() => setActiveCatId("all")}
-              className="h-9 px-4 text-xs font-semibold transition"
+              className="h-10 shrink-0 px-4 text-xs font-semibold transition sm:h-9"
               style={{
                 borderRadius: isCafe ? "9999px" : isBistro ? "2px" : "6px",
                 backgroundColor: activeCatId === "all" ? accentColor : surfaceBg,
@@ -256,7 +256,7 @@ export function MenuPage({ forcedSlug, previewPreset, isCustomDomain }: MenuPage
                 key={cat.id}
                 type="button"
                 onClick={() => setActiveCatId(cat.id)}
-                className="h-9 px-4 text-xs font-semibold transition"
+                className="h-10 shrink-0 px-4 text-xs font-semibold transition sm:h-9"
                 style={{
                   borderRadius: isCafe ? "9999px" : isBistro ? "2px" : "6px",
                   backgroundColor: activeCatId === cat.id ? accentColor : surfaceBg,
@@ -273,7 +273,7 @@ export function MenuPage({ forcedSlug, previewPreset, isCustomDomain }: MenuPage
             <button
               type="button"
               onClick={() => setOnlyRecommended((v) => !v)}
-              className="inline-flex h-9 items-center gap-1.5 px-3 text-xs font-semibold transition"
+              className="inline-flex h-10 shrink-0 items-center gap-1.5 px-3.5 text-xs font-semibold transition sm:h-9"
               style={{
                 borderRadius: isCafe ? "9999px" : isBistro ? "2px" : "6px",
                 backgroundColor: onlyRecommended ? accentColor : surfaceBg,
@@ -297,7 +297,7 @@ export function MenuPage({ forcedSlug, previewPreset, isCustomDomain }: MenuPage
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 placeholder="Cari menu..."
-                className="h-9 w-full pl-9 pr-3 text-xs focus:outline-none"
+                className="h-10 w-full pl-9 pr-3 text-xs focus:outline-none sm:h-9"
                 style={{
                   borderRadius: isCafe ? "9999px" : isBistro ? "2px" : "6px",
                   backgroundColor: surfaceBg,
