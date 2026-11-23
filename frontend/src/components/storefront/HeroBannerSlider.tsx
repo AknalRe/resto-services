@@ -63,9 +63,11 @@ export function HeroBannerSlider({
     setPaused(false);
   };
 
+  const posClass = className.includes("absolute") ? "" : "relative";
+
   return (
     <div
-      className={`relative overflow-hidden select-none ${className}`}
+      className={`${posClass} overflow-hidden select-none ${className}`}
       onMouseEnter={() => setPaused(true)}
       onMouseLeave={() => setPaused(false)}
       onTouchStart={onTouchStart}
